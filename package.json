@@ -1,0 +1,36 @@
+{
+  "name": "apex-core",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "turbo build",
+    "test": "turbo test",
+    "typecheck": "pnpm exec tsc --project packages/contracts/tsconfig.json --noEmit && pnpm exec tsc --project packages/control-plane-core/tsconfig.json --noEmit && pnpm exec tsc --project packages/sdk-hono/tsconfig.json --noEmit",
+    "test:integration": "pnpm --filter @nibblelayer/apex-api test:integration && pnpm --filter @nibblelayer/apex-persistence test:integration",
+    "lint": "pnpm typecheck",
+    "db:generate": "turbo db:generate",
+    "db:migrate": "turbo db:migrate",
+    "seed": "pnpm --filter @nibblelayer/apex-api seed",
+    "e2e": "bash ./scripts/e2e-test.sh",
+    "pack:verify": "bash ./scripts/verify-public-packages.sh",
+    "compose:verify": "bash ./scripts/verify-compose.sh",
+    "release:verify": "bash ./scripts/release-verify.sh",
+    "db:push": "pnpm --filter @nibblelayer/apex-persistence exec npx drizzle-kit push",
+    "dev:api": "pnpm --filter @nibblelayer/apex-api dev",
+    "dev:dashboard": "pnpm --filter @nibblelayer/apex-dashboard dev",
+    "compose:up": "podman compose up --build",
+    "compose:down": "podman compose down",
+    "compose:logs": "podman compose logs -f"
+  },
+  "engines": {
+    "node": ">=22.0.0 <23.0.0"
+  },
+  "devDependencies": {
+    "turbo": "^2.9.4",
+    "typescript": "^5.8.0"
+  },
+  "packageManager": "pnpm@10.33.0",
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
+  }
+}
