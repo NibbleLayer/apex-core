@@ -1,0 +1,88 @@
+# ==========================================================================
+# Apex — Podman Compose / Docker Compose
+#
+# ONE COMMAND:  podman compose up --build
+#               docker compose up --build
+#
+# Services:
+#   postgres   — PostgreSQL 16
+#   api        — Hono API (auto-seeds on first boot)
+#   dashboard  — SolidJS dashboard served by nginx
+# ==========================================================================
+
+services:
+  # ---- PostgreSQL ----
+  postgres:
+    image: docker.io/library/postgres:16-alpine
+    container_name: apex-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: apex
+      POSTGRES_PASSWORD: apex_dev
+      POSTGRES_DB: apex_dev
+    ports:
+      - "5433:5432"
+    volumes:
+      - apex-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U apex -d apex_dev"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  # ---- Init: push schema before API starts ----
+  init-db:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: apex-init-db
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://apex:apex_dev@postgres:5432/apex_dev
+    command: ["sh", "-c", "cd /app/packages/core && node node_modules/drizzle-kit/bin.cjs push --config drizzle.config.ts"]
+
+  # ---- API ----
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: apex-api
+    restart: unless-stopped
+    depends_on:
+      init-db:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgresql://apex:apex_dev@postgres:5432/apex_dev
+      PORT: "3000"
+      NODE_ENV: production
+      # Auto-seed settings (used on first boot only)
+      ORG_NAME: "${ORG_NAME:-My Organization}"
+      ORG_SLUG: "${ORG_SLUG:-my-org}"
+      KEY_LABEL: "${KEY_LABEL:-Admin Key}"
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ---- Dashboard ----
+  dashboard:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dashboard
+    container_name: apex-dashboard
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+
+volumes:
+  apex-pgdata:
+    driver: local

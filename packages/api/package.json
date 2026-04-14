@@ -1,0 +1,33 @@
+{
+  "name": "@nibblelayer/apex-api",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsup",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:watch": "vitest",
+    "seed": "tsx src/seed.ts"
+  },
+  "dependencies": {
+    "@nibblelayer/apex-contracts": "workspace:*",
+    "@nibblelayer/apex-control-plane-core": "workspace:*",
+    "@nibblelayer/apex-persistence": "workspace:*",
+    "hono": "^4.7.0",
+    "@hono/node-server": "^1.14.0",
+    "drizzle-orm": "^0.44.0",
+    "zod": "^3.24.0",
+    "pg": "^8.16.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.11.0",
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.2.0"
+  }
+}

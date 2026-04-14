@@ -1,0 +1,11 @@
+.turbo/
+.env
+.env.local
+*.log
+.git/
+.opencode/
+.aiwf/
+.aiwf-governance/
+.vitest/
+coverage/
+.DS_Store
