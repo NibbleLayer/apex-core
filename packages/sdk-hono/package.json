@@ -1,0 +1,47 @@
+{
+  "name": "@nibblelayer/apex-hono",
+  "version": "0.0.1",
+  "description": "Public Hono SDK for Apex self-hosted payable route integration.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": ["apex", "x402", "hono", "middleware", "payments"],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@nibblelayer/apex-contracts": "workspace:*",
+    "@x402/hono": "^2.9.0",
+    "@x402/core": "^2.9.0",
+    "@x402/evm": "^2.9.0",
+    "@x402/extensions": "^2.9.0",
+    "@x402/paywall": "^2.9.0"
+  },
+  "peerDependencies": {
+    "hono": ">=4.0.0"
+  },
+  "devDependencies": {
+    "hono": "^4.7.0",
+    "@types/node": "^22.0.0",
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.2.0",
+    "msw": "^2.7.0"
+  },
+  "files": ["dist", "README.md"]
+}

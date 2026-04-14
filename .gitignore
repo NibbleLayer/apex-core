@@ -1,0 +1,34 @@
+# >>> aiwf-runtime:start
+# Managed by aiwf. Do not edit manually.
+.opencode/
+**/.aiwf/
+!/.aiwf/
+/.aiwf/*
+!/.aiwf/config.json
+!/.aiwf/request.json
+!/.aiwf/exceptions.json
+!/.aiwf/schema/
+!/.aiwf/schema/request.schema.json
+/.aiwf/audit/
+/.aiwf/session/
+/.aiwf/tmp/
+/.aiwf/metrics/
+/.aiwf/reports/
+/.aiwf/state.json
+# <<< aiwf-runtime:end
+
+# AI workflow governance (internal development artifacts)
+.aiwf-governance/
+governance/
+
+# Project ignores
+node_modules/
+dist/
+.env
+.env.local
+*.log
+.turbo/
+.drizzle/
+coverage/
+.vitest/
+.DS_Store
