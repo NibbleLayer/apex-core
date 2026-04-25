@@ -1,31 +1,13 @@
-# >>> aiwf-runtime:start
-# Managed by aiwf. Do not edit manually.
-.opencode/
+# AIWF runtime — internal tooling, not for public repo
 **/.aiwf/
-!/.aiwf/
-/.aiwf/*
-!/.aiwf/config.json
-!/.aiwf/request.json
-!/.aiwf/exceptions.json
-!/.aiwf/schema/
-!/.aiwf/schema/request.schema.json
-/.aiwf/audit/
-/.aiwf/session/
-/.aiwf/tmp/
-/.aiwf/metrics/
-/.aiwf/reports/
-/.aiwf/state.json
-# <<< aiwf-runtime:end
-
-# AI workflow governance (internal development artifacts)
 .aiwf-governance/
-governance/
 
 # Project ignores
 node_modules/
 dist/
 .env
 .env.local
+.apex-seed-key
 *.log
 .turbo/
 .drizzle/
