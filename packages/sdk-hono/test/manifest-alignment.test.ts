@@ -62,6 +62,7 @@ describe('manifest alignment', () => {
     emitter.emit('payment.verified', {
       routeId: 'GET /api/weather',
       requestId: 'req_alignment',
+      paymentIdentifier: 'pay_alignment',
       buyerAddress: '0x1234567890abcdef1234567890abcdef12345678',
       amount: '10000',
       token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',

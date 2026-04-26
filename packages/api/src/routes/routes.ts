@@ -46,6 +46,9 @@ router.post('/services/:serviceId/routes', async (c) => {
         path: parsed.data.path,
         description: parsed.data.description ?? null,
         enabled: parsed.data.enabled ?? true,
+        source: 'dashboard',
+        publicationStatus: 'published',
+        updatedAt: new Date(),
       })
       .returning();
 
@@ -88,7 +91,7 @@ router.get('/services/:serviceId/routes', async (c) => {
   return c.json(result);
 });
 
-// PATCH /routes/:id - Update route enabled/description
+// PATCH /routes/:id - Update route enabled/description/publication status
 router.patch('/routes/:id', async (c) => {
   const db = await getDb();
   const routeId = c.req.param('id');
@@ -123,6 +126,19 @@ router.patch('/routes/:id', async (c) => {
   const updates: Record<string, any> = {};
   if (body.enabled !== undefined) updates.enabled = body.enabled;
   if (body.description !== undefined) updates.description = body.description;
+  if (body.publicationStatus !== undefined) {
+    if (body.publicationStatus !== 'draft' && body.publicationStatus !== 'published') {
+      return c.json({ error: 'publicationStatus must be "draft" or "published"' }, 400);
+    }
+    updates.publicationStatus = body.publicationStatus;
+    if (body.publicationStatus === 'published' && body.enabled === undefined) {
+      updates.enabled = true;
+    }
+  }
+  if (Object.keys(updates).length === 0) {
+    return c.json({ error: 'No supported route fields provided' }, 400);
+  }
+  updates.updatedAt = new Date();
 
   const [updated] = await db
     .update(routes)

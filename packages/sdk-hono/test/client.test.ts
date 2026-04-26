@@ -10,6 +10,9 @@ const {
   mockGetCached,
   mockManifestOn,
   mockManifestOff,
+  mockRouteRegistrarObserve,
+  mockRouteRegistrarStart,
+  mockRouteRegistrarStop,
 } = vi.hoisted(() => ({
   mockFetchManifest: vi.fn().mockResolvedValue({}),
   mockStartAutoRefresh: vi.fn(),
@@ -17,6 +20,9 @@ const {
   mockGetCached: vi.fn().mockReturnValue(null),
   mockManifestOn: vi.fn(),
   mockManifestOff: vi.fn(),
+  mockRouteRegistrarObserve: vi.fn(),
+  mockRouteRegistrarStart: vi.fn(),
+  mockRouteRegistrarStop: vi.fn(),
 }));
 
 vi.mock('../src/manifest.js', () => ({
@@ -33,6 +39,7 @@ vi.mock('../src/manifest.js', () => ({
 vi.mock('../src/events.js', () => ({
   SDKEventEmitter: vi.fn().mockImplementation(() => ({
     emit: vi.fn(),
+    setServiceId: vi.fn(),
     setEventsEndpoint: vi.fn(),
   })),
 }));
@@ -41,6 +48,14 @@ vi.mock('../src/middleware.js', () => ({
   createMiddlewareFromManifest: vi.fn().mockResolvedValue(
     async (_c: any, next: any) => next(),
   ),
+}));
+
+vi.mock('../src/route-registration.js', () => ({
+  RouteRegistrar: vi.fn().mockImplementation(() => ({
+    observe: mockRouteRegistrarObserve,
+    start: mockRouteRegistrarStart,
+    stop: mockRouteRegistrarStop,
+  })),
 }));
 
 const config = {
@@ -126,5 +141,25 @@ describe('createApexClient', () => {
     expect(constructorArg.refreshIntervalMs).toBe(60000);
     expect(constructorArg.enableIdempotency).toBe(true);
     expect(constructorArg.eventDelivery).toBe('fire-and-forget');
+    expect(constructorArg.routeRegistration).toBe('off');
+    expect(constructorArg.routeHeartbeatIntervalMs).toBe(60000);
+  });
+
+  it('observes routes for scoped SDK tokens and stops registrar on close', async () => {
+    const client = createApexClient({
+      ...config,
+      apiKey: 'apx_sdk_test123',
+    });
+    const middleware = await client.protect();
+
+    await middleware(
+      { req: { method: 'GET', path: '/weather' } } as any,
+      vi.fn(),
+    );
+    client.close();
+
+    expect(mockRouteRegistrarStart).toHaveBeenCalled();
+    expect(mockRouteRegistrarObserve).toHaveBeenCalledWith('GET', '/weather');
+    expect(mockRouteRegistrarStop).toHaveBeenCalled();
   });
 });

@@ -1,4 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import crypto from 'node:crypto';
+import {
+  buildManifestSigningMessage,
+  canonicalizeJson,
+  type ApexManifest,
+  type SignedManifestEnvelope,
+} from '@nibblelayer/apex-contracts';
 import { ManifestManager } from '../src/manifest.js';
 import { ApexConnectionError, ApexManifestValidationError } from '../src/errors.js';
 import { mockManifest, mockManifestV2 } from './fixtures/manifest.mock.js';
@@ -14,6 +21,41 @@ const fullConfig = {
 };
 
 const manifestUrl = `${fullConfig.apexUrl}/services/${fullConfig.serviceId}/manifest?env=${fullConfig.environment}`;
+const signedManifestUrl = `${fullConfig.apexUrl}/sdk/manifest`;
+const scopedConfig = { ...fullConfig, apiKey: 'apx_sdk_testtoken123' };
+
+function createSignedEnvelope(
+  manifest: ApexManifest,
+  apiKey = fullConfig.apiKey,
+  expiresAt = new Date(Date.now() + 300_000).toISOString(),
+): SignedManifestEnvelope {
+  const issuedAt = '2026-04-24T00:00:00.000Z';
+  const payloadDigest = crypto
+    .createHash('sha256')
+    .update(canonicalizeJson(manifest))
+    .digest('hex');
+  const message = buildManifestSigningMessage({
+    kid: 'key_test123',
+    issuedAt,
+    payloadDigest,
+  });
+  const secret = crypto
+    .createHash('sha256')
+    .update(`apex-manifest-signing:${apiKey}`)
+    .digest();
+
+  return {
+    manifest,
+    signature: {
+      alg: 'HS256',
+      kid: 'key_test123',
+      issuedAt,
+      expiresAt,
+      payloadDigest,
+      value: crypto.createHmac('sha256', secret).update(message).digest('hex'),
+    },
+  };
+}
 
 describe('ManifestManager', () => {
   let manager: ManifestManager;
@@ -45,6 +87,211 @@ describe('ManifestManager', () => {
         },
       }),
     );
+  });
+
+  it('uses the signed SDK manifest endpoint when enabled', async () => {
+    manager = new ManifestManager({ ...fullConfig, useSignedManifest: true });
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify(createSignedEnvelope(mockManifest)), { status: 200 }),
+    );
+
+    const result = await manager.fetchManifest();
+
+    expect(result).toEqual(mockManifest);
+    expect(fetch).toHaveBeenCalledWith(
+      signedManifestUrl,
+      expect.objectContaining({ headers: expect.any(Object) }),
+    );
+  });
+
+  it('uses the signed SDK manifest endpoint by default for scoped SDK tokens', async () => {
+    manager = new ManifestManager(scopedConfig);
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify(createSignedEnvelope(mockManifest, scopedConfig.apiKey)), {
+        status: 200,
+      }),
+    );
+
+    const result = await manager.fetchManifest();
+
+    expect(result).toEqual(mockManifest);
+    expect(fetch).toHaveBeenCalledWith(
+      signedManifestUrl,
+      expect.objectContaining({ headers: expect.any(Object) }),
+    );
+  });
+
+  it('accepts a scoped signed manifest without explicit serviceId or environment', async () => {
+    manager = new ManifestManager({
+      apiKey: scopedConfig.apiKey,
+      apexUrl: scopedConfig.apexUrl,
+      refreshIntervalMs: scopedConfig.refreshIntervalMs,
+      enableIdempotency: scopedConfig.enableIdempotency,
+      eventDelivery: scopedConfig.eventDelivery,
+    });
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify(createSignedEnvelope(mockManifest, scopedConfig.apiKey)), {
+        status: 200,
+      }),
+    );
+
+    const result = await manager.fetchManifest();
+
+    expect(result).toEqual(mockManifest);
+    expect(fetch).toHaveBeenCalledWith(
+      signedManifestUrl,
+      expect.objectContaining({ headers: expect.any(Object) }),
+    );
+  });
+
+  it('rejects bare unsigned manifests by default for scoped SDK tokens', async () => {
+    manager = new ManifestManager(scopedConfig);
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify(mockManifest), { status: 200 }),
+    );
+
+    const promise = manager.fetchManifest();
+    await expect(promise).rejects.toThrow(ApexManifestValidationError);
+    await expect(promise).rejects.toThrow('Invalid manifest format');
+  });
+
+  it('rejects expired signed envelopes by default for scoped SDK tokens', async () => {
+    manager = new ManifestManager(scopedConfig);
+    const envelope = createSignedEnvelope(
+      mockManifest,
+      scopedConfig.apiKey,
+      new Date(Date.now() - 1_000).toISOString(),
+    );
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify(envelope), { status: 200 }),
+    );
+
+    const promise = manager.fetchManifest();
+    await expect(promise).rejects.toThrow(ApexManifestValidationError);
+    await expect(promise).rejects.toMatchObject({
+      issues: [expect.objectContaining({ message: 'Manifest signature has expired' })],
+    });
+  });
+
+  it('uses the legacy manifest endpoint by default for legacy apex keys', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify(mockManifest), { status: 200 }),
+    );
+
+    await manager.fetchManifest();
+
+    expect(fetch).toHaveBeenCalledWith(
+      manifestUrl,
+      expect.objectContaining({ headers: expect.any(Object) }),
+    );
+  });
+
+  it('fails legacy unsigned mode without serviceId or environment before building a bad URL', () => {
+    expect(
+      () => new ManifestManager({
+        apiKey: fullConfig.apiKey,
+        apexUrl: fullConfig.apexUrl,
+        refreshIntervalMs: fullConfig.refreshIntervalMs,
+        enableIdempotency: fullConfig.enableIdempotency,
+        eventDelivery: fullConfig.eventDelivery,
+      }),
+    ).toThrow('legacy unsigned manifest mode requires serviceId and environment');
+  });
+
+  it('uses the legacy manifest endpoint when scoped SDK tokens explicitly disable signed mode', async () => {
+    manager = new ManifestManager({ ...scopedConfig, useSignedManifest: false });
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify(mockManifest), { status: 200 }),
+    );
+
+    await manager.fetchManifest();
+
+    expect(fetch).toHaveBeenCalledWith(
+      manifestUrl,
+      expect.objectContaining({ headers: expect.any(Object) }),
+    );
+  });
+
+  it('throws ApexManifestValidationError for a bad signed manifest signature', async () => {
+    manager = new ManifestManager({ ...fullConfig, useSignedManifest: true });
+    const envelope = createSignedEnvelope(mockManifest);
+    envelope.signature.value = '0'.repeat(64);
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify(envelope), { status: 200 }),
+    );
+
+    const promise = manager.fetchManifest();
+    await expect(promise).rejects.toThrow(ApexManifestValidationError);
+    await expect(promise).rejects.toThrow('Invalid manifest format');
+  });
+
+  it('rejects an expired signed manifest envelope', async () => {
+    manager = new ManifestManager({ ...fullConfig, useSignedManifest: true });
+    const envelope = createSignedEnvelope(
+      mockManifest,
+      fullConfig.apiKey,
+      new Date(Date.now() - 1_000).toISOString(),
+    );
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify(envelope), { status: 200 }),
+    );
+
+    const promise = manager.fetchManifest();
+    await expect(promise).rejects.toThrow(ApexManifestValidationError);
+    await expect(promise).rejects.toMatchObject({
+      issues: [expect.objectContaining({ message: 'Manifest signature has expired' })],
+    });
+  });
+
+  it('rejects a signed manifest envelope for a different serviceId', async () => {
+    manager = new ManifestManager({ ...fullConfig, useSignedManifest: true });
+    const envelope = createSignedEnvelope({ ...mockManifest, serviceId: 'svc_other' });
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify(envelope), { status: 200 }),
+    );
+
+    const promise = manager.fetchManifest();
+    await expect(promise).rejects.toThrow(ApexManifestValidationError);
+    await expect(promise).rejects.toMatchObject({
+      issues: [
+        expect.objectContaining({
+          message: 'Signed manifest serviceId does not match requested serviceId',
+        }),
+      ],
+    });
+  });
+
+  it('rejects a signed manifest envelope for a different environment', async () => {
+    manager = new ManifestManager({ ...fullConfig, useSignedManifest: true });
+    const envelope = createSignedEnvelope({ ...mockManifest, environment: 'prod' });
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify(envelope), { status: 200 }),
+    );
+
+    const promise = manager.fetchManifest();
+    await expect(promise).rejects.toThrow(ApexManifestValidationError);
+    await expect(promise).rejects.toMatchObject({
+      issues: [
+        expect.objectContaining({
+          message: 'Signed manifest environment does not match requested environment',
+        }),
+      ],
+    });
+  });
+
+  it('accepts a schema-valid signed envelope when signature verification is disabled', async () => {
+    manager = new ManifestManager({
+      ...fullConfig,
+      useSignedManifest: true,
+      verifySignedManifest: false,
+    });
+    const envelope = createSignedEnvelope(mockManifest);
+    envelope.signature.value = '0'.repeat(64);
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify(envelope), { status: 200 }),
+    );
+
+    await expect(manager.fetchManifest()).resolves.toEqual(mockManifest);
   });
 
   it('caches manifest in memory', async () => {

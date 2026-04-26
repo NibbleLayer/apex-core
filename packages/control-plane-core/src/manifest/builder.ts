@@ -16,8 +16,9 @@ export interface ManifestInput {
   serviceId: string;
   environment: Pick<Environment, 'mode' | 'network' | 'facilitatorUrl'>;
   wallet: Pick<WalletDestination, 'address' | 'token' | 'network'>;
+  verifiedDomains?: string[];
   routes: Array<{
-    route: Pick<Route, 'method' | 'path' | 'description' | 'enabled'>;
+    route: Pick<Route, 'id' | 'method' | 'path' | 'description' | 'enabled'>;
     priceRules: Array<Pick<PriceRule, 'scheme' | 'amount' | 'token' | 'network' | 'active'>>;
     discovery: Pick<DiscoveryMetadata, 'discoverable' | 'category' | 'tags' | 'inputSchema' | 'outputSchema' | 'published'> | null;
   }>;
@@ -44,29 +45,31 @@ export function buildManifest(input: ManifestInput): ApexManifest {
       payTo: input.wallet.address,
     }));
 
-    let extensions: ManifestRouteExtensions | undefined;
-    if (input.idempotencyEnabled || (entry.discovery?.discoverable && entry.discovery.published)) {
-      extensions = {};
+    const extensions: ManifestRouteExtensions = {
+      apex: {
+        routeId: entry.route.id,
+        routeKey: key,
+      },
+    };
 
-      if (input.idempotencyEnabled) {
-        extensions['payment-identifier'] = { required: false };
-      }
+    if (input.idempotencyEnabled) {
+      extensions['payment-identifier'] = { required: false };
+    }
 
-      if (entry.discovery?.discoverable && entry.discovery.published) {
-        extensions.bazaar = {
-          discoverable: true,
-          category: entry.discovery.category ?? undefined,
-          tags: entry.discovery.tags ?? undefined,
-          inputSchema: entry.discovery.inputSchema ?? undefined,
-          outputSchema: entry.discovery.outputSchema ?? undefined,
-        };
-      }
+    if (entry.discovery?.discoverable && entry.discovery.published) {
+      extensions.bazaar = {
+        discoverable: true,
+        category: entry.discovery.category ?? undefined,
+        tags: entry.discovery.tags ?? undefined,
+        inputSchema: entry.discovery.inputSchema ?? undefined,
+        outputSchema: entry.discovery.outputSchema ?? undefined,
+      };
     }
 
     routes[key] = {
       accepts,
       ...(entry.route.description && { description: entry.route.description }),
-      ...(extensions && { extensions }),
+      extensions,
     };
   }
 
@@ -83,6 +86,7 @@ export function buildManifest(input: ManifestInput): ApexManifest {
     network: input.environment.network,
     facilitatorUrl: input.environment.facilitatorUrl,
     wallet,
+    verifiedDomains: [...(input.verifiedDomains ?? [])].sort(),
     routes,
     eventsEndpoint: input.eventsEndpoint,
     idempotencyEnabled: input.idempotencyEnabled,

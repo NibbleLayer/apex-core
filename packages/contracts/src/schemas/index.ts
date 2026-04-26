@@ -6,6 +6,11 @@ export { createWalletSchema, walletSchema } from './wallet.js';
 export { createRouteSchema, routeSchema } from './route.js';
 export { createPriceRuleSchema, priceRuleSchema } from './pricing.js';
 export { createDiscoverySchema, discoverySchema } from './discovery.js';
+export {
+  createServiceDomainSchema,
+  serviceDomainSchema,
+  serviceDomainVerificationResultSchema,
+} from './service-domain.js';
 export { createWebhookSchema } from './webhook.js';
 export { settlementSchema } from './settlement.js';
 export {
@@ -13,4 +18,8 @@ export {
   paymentEventSchema,
   paymentEventTypeSchema,
 } from './event.js';
-export { apexManifestSchema } from './manifest.js';
+export {
+  apexManifestSchema,
+  manifestSignatureSchema,
+  signedManifestEnvelopeSchema,
+} from './manifest.js';

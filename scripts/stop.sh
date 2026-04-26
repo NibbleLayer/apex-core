@@ -3,7 +3,6 @@ set -euo pipefail
 
 ROOT_DIR="$(git rev-parse --show-toplevel)"
 COMPOSE_FILE="${ROOT_DIR}/compose.yaml"
-DRY_RUN=0
 REMOVE_VOLUMES=0
 
 BLUE='\033[1;34m'
@@ -12,67 +11,78 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-log() {
-  printf '%b\n' "$1"
-}
-
-run_cmd() {
-  if [[ "$DRY_RUN" -eq 1 ]]; then
-    log "${YELLOW}[dry-run]${NC} $*"
-    return 0
-  fi
-
-  "$@"
-}
+log() { printf '%b\n' "$1"; }
 
 detect_compose() {
-  if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
+  if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
     printf '%s' 'docker compose'
     return 0
   fi
-
-  if command -v podman >/dev/null 2>&1 && podman info >/dev/null 2>&1 && podman compose version >/dev/null 2>&1; then
+  if command -v podman >/dev/null 2>&1 && podman compose version >/dev/null 2>&1; then
     printf '%s' 'podman compose'
     return 0
   fi
-
   return 1
+}
+
+kill_port() {
+  local port="$1"
+  if command -v lsof >/dev/null 2>&1; then
+    lsof -ti:"$port" 2>/dev/null | xargs --no-run-if-empty kill 2>/dev/null || true
+  elif command -v fuser >/dev/null 2>&1; then
+    fuser -k "$port"/tcp 2>/dev/null || true
+  fi
+}
+
+remove_direct_container() {
+  local runtime="$1"
+  command -v "$runtime" >/dev/null 2>&1 || return 0
+
+  if ! "$runtime" container inspect apex-postgres >/dev/null 2>&1; then
+    return 0
+  fi
+
+  if [[ "$REMOVE_VOLUMES" -eq 1 ]]; then
+    log "Removing apex-postgres with volumes (${runtime})..."
+    "$runtime" rm -f -v apex-postgres >/dev/null 2>&1 || true
+  else
+    log "Removing apex-postgres (${runtime})..."
+    "$runtime" rm -f apex-postgres >/dev/null 2>&1 || true
+  fi
 }
 
 for arg in "$@"; do
   case "$arg" in
-    --dry-run)
-      DRY_RUN=1
-      ;;
-    --volumes)
-      REMOVE_VOLUMES=1
-      ;;
+    --volumes) REMOVE_VOLUMES=1 ;;
     *)
       log "${RED}ERROR:${NC} unknown argument '$arg'."
+      log "Usage: $0 [--volumes]"
       exit 1
       ;;
   esac
 done
 
-if [[ ! -f "$COMPOSE_FILE" ]]; then
-  log "${RED}ERROR:${NC} compose file not found at ${COMPOSE_FILE}."
-  exit 1
-fi
-
-if ! COMPOSE="$(detect_compose)"; then
-  log "${RED}ERROR:${NC} docker compose or podman compose is required."
-  exit 1
-fi
-
-DOWN_ARGS=(down)
-if [[ "$REMOVE_VOLUMES" -eq 1 ]]; then
-  DOWN_ARGS+=(--volumes)
-fi
-
 log "${BLUE}=== Apex shutdown ===${NC}"
-log "Repository: ${ROOT_DIR}"
-log "${GREEN}Using compose command:${NC} ${COMPOSE}"
 
-run_cmd bash -lc "${COMPOSE} -f \"${COMPOSE_FILE}\" ${DOWN_ARGS[*]}"
+# Direct containers are primary. Try both because users may switch runtimes.
+remove_direct_container podman
+remove_direct_container docker
 
-log "${GREEN}Shutdown complete.${NC}"
+# Compose cleanup is a best-effort fallback for older local environments.
+if [[ -f "$COMPOSE_FILE" ]]; then
+  if COMPOSE="$(detect_compose 2>/dev/null)"; then
+    DOWN_ARGS=(down)
+    [[ "$REMOVE_VOLUMES" -eq 1 ]] && DOWN_ARGS+=(--volumes)
+
+    log "Best-effort compose cleanup: ${COMPOSE} ${DOWN_ARGS[*]}"
+    bash -lc "${COMPOSE} -f \"${COMPOSE_FILE}\" ${DOWN_ARGS[*]}" >/dev/null 2>&1 || true
+  fi
+fi
+
+kill_port 3000
+kill_port 5173
+
+if [[ "$REMOVE_VOLUMES" -eq 1 ]]; then
+  log "${YELLOW}Database container and attached anonymous volumes were removed where discoverable.${NC}"
+fi
+log "${GREEN}Stopped.${NC}"

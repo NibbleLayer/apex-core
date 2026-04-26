@@ -15,6 +15,62 @@
       "when": 1775564889174,
       "tag": "0001_lush_legion",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1777055453003,
+      "tag": "0002_wise_magma",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1777078640956,
+      "tag": "0003_absurd_scarlet_witch",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1777090463980,
+      "tag": "0004_confused_rhodey",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1777092199624,
+      "tag": "0005_service_domains",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1777100000000,
+      "tag": "0006_gate7_lifecycle_hardening",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1777180000000,
+      "tag": "0007_audit_log",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1777260000000,
+      "tag": "0008_api_key_roles",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1777340000000,
+      "tag": "0009_usage_counters",
+      "breakpoints": true
     }
   ]
 }

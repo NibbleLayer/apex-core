@@ -22,7 +22,7 @@ export interface PaymentEventPayload {
   routeId: string;
   type: PaymentEventType;
   requestId: string;
-  paymentIdentifier?: string;
+  paymentIdentifier: string;
   buyerAddress?: string;
   amount?: string;
   token?: string;

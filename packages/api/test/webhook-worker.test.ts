@@ -7,6 +7,7 @@ import { testDb } from './setup.js';
 import { createId } from '../src/utils/id.js';
 import { processWebhookDeliveries } from '../src/workers/webhook.js';
 import { setDbResolver, resetDbResolver } from '../src/db/resolver.js';
+import { verifyWebhookSignature } from '../src/services/webhook-signing.js';
 
 beforeAll(() => {
   setDbResolver(async () => testDb);
@@ -202,15 +203,19 @@ describe('Webhook Worker', () => {
     const req = mockServer.received[0];
     expect(req.method).toBe('POST');
 
-    // Verify HMAC signature against the actual body received by the server
+    // Verify replay-resistant HMAC signature against timestamp.deliveryId.body.
     const actualBody = JSON.stringify(req.body);
-    const expectedSig = crypto
-      .createHmac('sha256', secret)
-      .update(actualBody)
-      .digest('hex');
-    expect(req.headers['x-apex-signature']).toBe(`sha256=${expectedSig}`);
+    expect(verifyWebhookSignature({
+      secret,
+      timestamp: String(req.headers['x-apex-timestamp']),
+      deliveryId,
+      body: actualBody,
+      signature: String(req.headers['x-apex-signature']),
+      toleranceSeconds: 300,
+    })).toBe(true);
     expect(req.headers['x-apex-event-type']).toBe('payment.settled');
     expect(req.headers['x-apex-delivery-id']).toBe(deliveryId);
+    expect(req.headers['x-apex-timestamp']).toMatch(/^\d+$/);
     expect(req.body.type).toBe('payment.settled');
     expect(req.body.data).toEqual({ amount: '$0.01' });
 
@@ -233,6 +238,7 @@ describe('Webhook Worker', () => {
       .where(eq(webhookDeliveries.id, deliveryId));
     expect(delivery.attempts).toBe(1);
     expect(delivery.status).toBe('pending');
+    expect(delivery.nextAttemptAt).toBeInstanceOf(Date);
     expect(delivery.lastError).toBeDefined();
   });
 
@@ -257,6 +263,29 @@ describe('Webhook Worker', () => {
       .where(eq(webhookDeliveries.id, deliveryId));
     expect(delivery.attempts).toBe(5);
     expect(delivery.status).toBe('dead_lettered');
+    expect(delivery.nextAttemptAt).toBeNull();
+  });
+
+  it('skips pending deliveries until nextAttemptAt is due', async () => {
+    const { deliveryId } = await createDeliverySetup(
+      'http://127.0.0.1:1/not-yet',
+      true,
+      { type: 'payment.failed', data: {} },
+    );
+
+    await testDb
+      .update(webhookDeliveries)
+      .set({ nextAttemptAt: new Date(Date.now() + 60_000) })
+      .where(eq(webhookDeliveries.id, deliveryId));
+
+    await processWebhookDeliveries();
+
+    const [delivery] = await testDb
+      .select()
+      .from(webhookDeliveries)
+      .where(eq(webhookDeliveries.id, deliveryId));
+    expect(delivery.attempts).toBe(0);
+    expect(delivery.status).toBe('pending');
   });
 
   it('dead-letters deliveries with attempts >= MAX_ATTEMPTS on fetch', async () => {

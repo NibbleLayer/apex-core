@@ -7,7 +7,10 @@ import {
   createTestOrgKeyAndService,
   jsonAuthHeaders,
   authHeaders,
+  createTestRoute,
 } from './helpers.js';
+import { paymentEvents, webhookDeliveries } from '@nibblelayer/apex-persistence/db';
+import { createId } from '../src/utils/id.js';
 
 beforeAll(() => {
   setDbResolver(async () => testDb);
@@ -128,6 +131,59 @@ describe('GET /services/:id/webhooks', () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body).toEqual([]);
+  });
+});
+
+describe('GET /services/:id/webhook-deliveries', () => {
+  it('returns recent webhook delivery failures with endpoint visibility', async () => {
+    const { rawKey, serviceId } = await createTestOrgKeyAndService();
+    const routeId = await createTestRoute(serviceId);
+
+    const createRes = await webhookRoutes.request(`/services/${serviceId}/webhooks`, {
+      method: 'POST',
+      headers: jsonAuthHeaders(rawKey),
+      body: JSON.stringify({ url: 'https://example.com/hook' }),
+    });
+    const webhook = await createRes.json();
+
+    const eventId = createId();
+    await testDb.insert(paymentEvents).values({
+      id: eventId,
+      serviceId,
+      routeId,
+      type: 'payment.failed',
+      requestId: 'req_delivery_list',
+      paymentIdentifier: 'pay_delivery_list',
+      buyerAddress: null,
+      payload: null,
+    });
+
+    await testDb.insert(webhookDeliveries).values({
+      id: createId(),
+      webhookEndpointId: webhook.id,
+      eventId,
+      payload: { type: 'payment.failed' },
+      status: 'pending',
+      attempts: 1,
+      lastAttemptAt: new Date(),
+      nextAttemptAt: new Date(),
+      lastError: 'HTTP 500',
+    });
+
+    const res = await webhookRoutes.request(`/services/${serviceId}/webhook-deliveries?status=pending`, {
+      headers: authHeaders(rawKey),
+    });
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.deliveries).toHaveLength(1);
+    expect(body.deliveries[0]).toMatchObject({
+      endpointUrl: 'https://example.com/hook',
+      status: 'pending',
+      attempts: 1,
+      lastError: 'HTTP 500',
+      eventId,
+    });
   });
 });
 

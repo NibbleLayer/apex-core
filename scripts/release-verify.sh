@@ -40,6 +40,7 @@ log "Workspace: ${ROOT_DIR}"
 run_step "Build workspace" pnpm --dir "$ROOT_DIR" build
 run_step "Run tests" pnpm --dir "$ROOT_DIR" test
 run_step "Run type checks" pnpm --dir "$ROOT_DIR" typecheck
+run_step "Verify release metadata" pnpm --dir "$ROOT_DIR" release:metadata
 run_step "Verify public package tarballs" pnpm --dir "$ROOT_DIR" pack:verify
 
 if [[ "$SKIP_COMPOSE_CHECK" -eq 0 ]]; then

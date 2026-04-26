@@ -32,9 +32,10 @@ describe('Full Flow Integration', () => {
 
       // Create API key directly in DB (auth routes are separate)
       const crypto = await import('node:crypto');
+      const { hashApiKey } = await import('../../src/crypto.js');
       const { apiKeys } = await import('@nibblelayer/apex-persistence/db');
       const rawKey = `apex_${crypto.randomBytes(32).toString('hex')}`;
-      const keyHash = crypto.createHash('sha256').update(rawKey).digest('hex');
+      const keyHash = await hashApiKey(rawKey);
       const { createId } = await import('../../src/utils/id.js');
       const keyId = createId();
       await testDb.insert(apiKeys).values({
@@ -161,6 +162,7 @@ describe('Full Flow Integration', () => {
         routeId: route.id,
         type: 'payment.settled',
         requestId: 'req_integration_001',
+        paymentIdentifier: 'pay_integration_001',
         amount: '$0.01',
         token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
         network: 'eip155:84532',
@@ -178,7 +180,7 @@ describe('Full Flow Integration', () => {
     const settlements = await settlementRes.json();
     expect(settlements.total).toBe(1);
     expect(settlements.settlements[0].amount).toBe('$0.01');
-    expect(settlements.settlements[0].status).toBe('confirmed');
+    expect(settlements.settlements[0].status).toBe('pending');
     expect(settlements.settlements[0].settlement_reference).toBe('0xsettlement123');
 
     // 11. Verify webhook delivery was enqueued

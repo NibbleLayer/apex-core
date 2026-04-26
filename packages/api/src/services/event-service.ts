@@ -54,7 +54,9 @@ export function buildSettlementRecord(payload: ParsedEventPayload, paymentEventI
     token: payload.token ?? 'unknown',
     network: payload.network ?? 'unknown',
     settlementReference: payload.settlementReference ?? null,
-    status: 'confirmed' as const,
+    // SDK ingestion observes a settlement claim only; final financial confirmation
+    // must come from facilitator/on-chain reconciliation in a later gate.
+    status: 'pending' as const,
   };
 }
 
@@ -138,7 +140,7 @@ export async function ingestEvent(
     routeId: payload.routeId,
     type: payload.type,
     requestId: payload.requestId,
-    paymentIdentifier: payload.paymentIdentifier ?? null,
+    paymentIdentifier: payload.paymentIdentifier,
     buyerAddress: payload.buyerAddress ?? null,
     payload: rawPayload as Record<string, unknown>,
   });

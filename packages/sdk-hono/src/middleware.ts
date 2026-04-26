@@ -1,11 +1,24 @@
 import type { ApexManifest } from '@nibblelayer/apex-contracts';
 import type { MiddlewareHandler } from 'hono';
+import { ApexMiddlewareInitializationError } from './errors.js';
+
+const X402_INITIALIZATION_FAILURE_MESSAGE =
+  'Apex Hono middleware failed to initialize real x402 middleware; production is fail-closed.';
+
+function isProductionEnvironment(): boolean {
+  return process.env.NODE_ENV === 'production';
+}
+
+function normalizeError(error: unknown): Error {
+  return error instanceof Error ? error : new Error(String(error));
+}
 
 /**
  * Create Hono middleware from an Apex manifest.
  *
- * In production with @x402/hono installed, this uses the real payment middleware.
- * Falls back to adapter implementation if @x402/hono is not available.
+ * Uses the real x402 payment middleware when available.
+ * In production, initialization failures fail closed instead of falling back.
+ * Non-production can fall back to the adapter for local development and tests.
  */
 export async function createMiddlewareFromManifest(
   manifest: ApexManifest,
@@ -44,6 +57,7 @@ export async function createMiddlewareFromManifest(
         eventEmitter('payment.failed', {
           paymentPayload: ctx.paymentPayload,
           requirements: ctx.requirements,
+          result: ctx.result,
           error: ctx.error,
         });
       })
@@ -51,6 +65,7 @@ export async function createMiddlewareFromManifest(
         eventEmitter('payment.failed', {
           paymentPayload: ctx.paymentPayload,
           requirements: ctx.requirements,
+          result: ctx.result,
           error: ctx.error,
         });
       });
@@ -73,8 +88,19 @@ export async function createMiddlewareFromManifest(
     }
 
     return x402Hono.paymentMiddleware(routes, resourceServer);
-  } catch {
-    // Fall back to adapter when @x402/hono is not available
+  } catch (error) {
+    if (isProductionEnvironment()) {
+      throw new ApexMiddlewareInitializationError(
+        X402_INITIALIZATION_FAILURE_MESSAGE,
+        normalizeError(error),
+      );
+    }
+
+    console.warn(
+      `[Apex SDK] ${X402_INITIALIZATION_FAILURE_MESSAGE} Using dev/test-only fallback adapter; this adapter is unsafe for production.`,
+    );
+
+    // Fall back to adapter when real x402 packages are unavailable in dev/test.
     const { createPaymentMiddleware } = await import('./x402-adapter.js');
     return createPaymentMiddleware(manifest);
   }

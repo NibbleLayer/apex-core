@@ -6,18 +6,24 @@ import { walletDestinations } from './wallet-destinations.js';
 import { routes } from './routes.js';
 import { priceRules } from './price-rules.js';
 import { serviceManifests } from './service-manifests.js';
+import { serviceDomains } from './service-domains.js';
 import { paymentEvents } from './payment-events.js';
 import { settlements } from './settlements.js';
 import { discoveryMetadata } from './discovery-metadata.js';
 import { webhookEndpoints } from './webhook-endpoints.js';
 import { webhookDeliveries } from './webhook-deliveries.js';
 import { apiKeys } from './api-keys.js';
+import { sdkTokens } from './sdk-tokens.js';
+import { auditLog } from './audit-log.js';
 
 // ─── Organizations ──────────────────────────────────────────────────────────
 
 export const organizationsRelations = relations(organizations, ({ many }) => ({
   services: many(services),
   apiKeys: many(apiKeys),
+  sdkTokens: many(sdkTokens),
+  serviceDomains: many(serviceDomains),
+  auditLogs: many(auditLog),
 }));
 
 // ─── Services ───────────────────────────────────────────────────────────────
@@ -32,8 +38,23 @@ export const servicesRelations = relations(services, ({ one, many }) => ({
   walletDestinations: many(walletDestinations),
   webhookEndpoints: many(webhookEndpoints),
   manifests: many(serviceManifests),
+  domains: many(serviceDomains),
   paymentEvents: many(paymentEvents),
   settlements: many(settlements),
+  sdkTokens: many(sdkTokens),
+}));
+
+// ─── Service Domains ───────────────────────────────────────────────────────
+
+export const serviceDomainsRelations = relations(serviceDomains, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [serviceDomains.organizationId],
+    references: [organizations.id],
+  }),
+  service: one(services, {
+    fields: [serviceDomains.serviceId],
+    references: [services.id],
+  }),
 }));
 
 // ─── Environments ───────────────────────────────────────────────────────────
@@ -164,6 +185,28 @@ export const webhookDeliveriesRelations = relations(webhookDeliveries, ({ one })
 export const apiKeysRelations = relations(apiKeys, ({ one }) => ({
   organization: one(organizations, {
     fields: [apiKeys.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
+// ─── SDK Tokens ─────────────────────────────────────────────────────────────
+
+export const sdkTokensRelations = relations(sdkTokens, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [sdkTokens.organizationId],
+    references: [organizations.id],
+  }),
+  service: one(services, {
+    fields: [sdkTokens.serviceId],
+    references: [services.id],
+  }),
+}));
+
+// ─── Audit Log ──────────────────────────────────────────────────────────────
+
+export const auditLogRelations = relations(auditLog, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [auditLog.organizationId],
     references: [organizations.id],
   }),
 }));

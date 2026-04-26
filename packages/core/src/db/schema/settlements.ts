@@ -24,4 +24,5 @@ export const settlements = pgTable('settlements', {
     enum: ['pending', 'confirmed', 'failed'],
   }).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });

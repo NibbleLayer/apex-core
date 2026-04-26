@@ -1,12 +1,14 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import type { SignedManifestEnvelope } from '@nibblelayer/apex-contracts';
 import { manifestRoutes } from '../src/routes/manifests.js';
 import { setDbResolver, resetDbResolver } from '../src/db/resolver.js';
+import { verifyManifestEnvelope } from '../src/services/manifest-signing.js';
 import { testDb } from './setup.js';
 import {
   createTestOrgWithKey,
   createTestOrgKeyAndService,
-  jsonAuthHeaders,
   authHeaders,
+  createTestSdkToken,
   createTestEnvironment,
   createTestWallet,
   createTestRoute,
@@ -22,12 +24,12 @@ afterAll(() => {
 });
 
 async function setupServiceWithManifest() {
-  const { rawKey, serviceId } = await createTestOrgKeyAndService();
+  const { orgId, rawKey, serviceId } = await createTestOrgKeyAndService();
   const envId = await createTestEnvironment(serviceId, 'test');
   await createTestWallet(serviceId, envId);
   const routeId = await createTestRoute(serviceId, 'GET', '/api/weather');
   await createTestPriceRule(routeId);
-  return { rawKey, serviceId };
+  return { orgId, rawKey, serviceId };
 }
 
 describe('GET /services/:id/manifest', () => {
@@ -108,5 +110,83 @@ describe('GET /services/:id/manifest', () => {
     const body = await res.json();
     expect(body.serviceId).toBe(serviceId);
     expect(body.version).toBe(1);
+  });
+
+  it('keeps legacy manifest response bare', async () => {
+    const { rawKey, serviceId } = await setupServiceWithManifest();
+
+    const res = await manifestRoutes.request(`/services/${serviceId}/manifest?env=test`, {
+      headers: authHeaders(rawKey),
+    });
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.manifest).toBeUndefined();
+    expect(body.signature).toBeUndefined();
+    expect(body.serviceId).toBe(serviceId);
+  });
+});
+
+describe('GET /sdk/manifest', () => {
+  it('returns a signed manifest envelope', async () => {
+    const { orgId, serviceId } = await setupServiceWithManifest();
+    const { rawToken, id: sdkTokenId } = await createTestSdkToken({ orgId, serviceId });
+
+    const res = await manifestRoutes.request('/sdk/manifest', {
+      headers: authHeaders(rawToken),
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get('x-apex-skip-serialization')).toBe('1');
+
+    const parsed = (await res.json()) as SignedManifestEnvelope;
+    expect(parsed.manifest.serviceId).toBe(serviceId);
+    expect(parsed.signature.alg).toBe('HS256');
+    expect(parsed.signature.kid).toBe(sdkTokenId);
+    expect(parsed.signature.payloadDigest).toMatch(/^[a-f0-9]{64}$/);
+    expect(parsed.signature.value).toMatch(/^[a-f0-9]{64}$/);
+    expect(verifyManifestEnvelope({ envelope: parsed, rawApiKey: rawToken })).toBe(true);
+  });
+
+  it('infers service and environment from the SDK token when query params are missing', async () => {
+    const { orgId, serviceId } = await setupServiceWithManifest();
+    const { rawToken } = await createTestSdkToken({ orgId, serviceId });
+
+    const res = await manifestRoutes.request('/sdk/manifest', {
+      headers: authHeaders(rawToken),
+    });
+
+    expect(res.status).toBe(200);
+    const parsed = (await res.json()) as SignedManifestEnvelope;
+    expect(parsed.manifest.serviceId).toBe(serviceId);
+    expect(parsed.manifest.environment).toBe('test');
+  });
+
+  it('returns 403 when env query mismatches the SDK token binding', async () => {
+    const { orgId, serviceId } = await setupServiceWithManifest();
+    const { rawToken } = await createTestSdkToken({ orgId, serviceId, environment: 'test' });
+
+    const res = await manifestRoutes.request(`/sdk/manifest?serviceId=${serviceId}&env=prod`, {
+      headers: authHeaders(rawToken),
+    });
+
+    expect(res.status).toBe(403);
+  });
+
+  it('returns 403 when serviceId query mismatches the SDK token binding', async () => {
+    const { orgId, serviceId } = await setupServiceWithManifest();
+    const { rawToken } = await createTestSdkToken({ orgId, serviceId });
+
+    const res = await manifestRoutes.request('/sdk/manifest?serviceId=svc_other&env=test', {
+      headers: authHeaders(rawToken),
+    });
+
+    expect(res.status).toBe(403);
+  });
+
+  it('returns 401 without authentication', async () => {
+    const res = await manifestRoutes.request('/sdk/manifest?serviceId=fake&env=test');
+
+    expect(res.status).toBe(401);
   });
 });

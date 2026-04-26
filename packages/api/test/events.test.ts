@@ -34,6 +34,7 @@ describe('POST /events', () => {
         routeId,
         type: 'payment.required',
         requestId: 'req_001',
+        paymentIdentifier: 'pay_req_001',
         timestamp: new Date().toISOString(),
       }),
     });
@@ -70,6 +71,7 @@ describe('POST /events', () => {
       routeId,
       type: 'payment.verified',
       requestId: 'req_dedup_001',
+      paymentIdentifier: 'pay_dedup_001',
       timestamp: new Date().toISOString(),
     };
 
@@ -111,6 +113,7 @@ describe('POST /events', () => {
         routeId,
         type: 'payment.settled',
         requestId: 'req_settled_001',
+        paymentIdentifier: 'pay_settled_001',
         amount: '$0.01',
         token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
         network: 'eip155:84532',
@@ -131,7 +134,7 @@ describe('POST /events', () => {
     expect(result).toHaveLength(1);
     expect(result[0].amount).toBe('$0.01');
     expect(result[0].settlementReference).toBe('0xabc123');
-    expect(result[0].status).toBe('confirmed');
+    expect(result[0].status).toBe('pending');
   });
 
   it('returns 401 without authentication', async () => {
@@ -162,6 +165,7 @@ describe('POST /events', () => {
         routeId: 'fake',
         type: 'payment.required',
         requestId: 'req_002',
+        paymentIdentifier: 'pay_req_002',
         timestamp: new Date().toISOString(),
       }),
     });
@@ -279,6 +283,7 @@ describe('Webhook delivery enqueue on event ingestion', () => {
         routeId,
         type: 'payment.required',
         requestId: 'req_wh_enqueue_1',
+        paymentIdentifier: 'pay_wh_enqueue_1',
         timestamp: new Date().toISOString(),
       }),
     });
@@ -326,6 +331,7 @@ describe('Webhook delivery enqueue on event ingestion', () => {
         routeId,
         type: 'payment.required',
         requestId: 'req_wh_skip_1',
+        paymentIdentifier: 'pay_wh_skip_1',
         timestamp: new Date().toISOString(),
       }),
     });
@@ -349,6 +355,7 @@ describe('Webhook delivery enqueue on event ingestion', () => {
         routeId,
         type: 'payment.required',
         requestId: 'req_wh_none_1',
+        paymentIdentifier: 'pay_wh_none_1',
         timestamp: new Date().toISOString(),
       }),
     });

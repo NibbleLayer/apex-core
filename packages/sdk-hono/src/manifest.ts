@@ -1,9 +1,24 @@
-import type { ApexManifest } from '@nibblelayer/apex-contracts';
-import { apexManifestSchema } from '@nibblelayer/apex-contracts/schemas';
-import { ApexConnectionError, ApexManifestValidationError } from './errors.js';
+import type { ApexManifest, SignedManifestEnvelope } from '@nibblelayer/apex-contracts';
+import {
+  apexManifestSchema,
+  signedManifestEnvelopeSchema,
+} from '@nibblelayer/apex-contracts/schemas';
+import {
+  ApexConnectionError,
+  ApexManifestValidationError,
+  ApexMiddlewareInitializationError,
+  type ZodIssueLike,
+} from './errors.js';
 import type { ApexClientConfig } from './types.js';
+import { verifySignedManifestEnvelope } from './manifest-envelope.js';
 
-type FullConfig = Required<ApexClientConfig>;
+type ParseFailure = { success: false; error: { issues: ZodIssueLike[] } };
+
+type FullConfig = ApexClientConfig & {
+  refreshIntervalMs: number;
+  enableIdempotency: boolean;
+  eventDelivery: 'fire-and-forget' | 'batched';
+};
 
 export class ManifestManager {
   private cache: ApexManifest | null = null;
@@ -13,11 +28,12 @@ export class ManifestManager {
   private currentRefreshIntervalMs: number;
 
   constructor(private config: FullConfig) {
+    validateConfig(config);
     this.currentRefreshIntervalMs = config.refreshIntervalMs;
   }
 
   async fetchManifest(): Promise<ApexManifest> {
-    const url = `${this.config.apexUrl}/services/${this.config.serviceId}/manifest?env=${this.config.environment}`;
+    const url = this.buildManifestUrl();
 
     try {
       this.abortController = new AbortController();
@@ -40,7 +56,7 @@ export class ManifestManager {
       }
 
       const data = await response.json();
-      const result = apexManifestSchema.safeParse(data);
+      const result = this.parseManifestResponse(data);
 
       if (!result.success) {
         if (this.cache) {
@@ -49,7 +65,7 @@ export class ManifestManager {
         }
         throw new ApexManifestValidationError(
           'Invalid manifest format',
-          result.error.issues,
+          toZodIssueLikes(result.error.issues),
         );
       }
 
@@ -135,4 +151,127 @@ export class ManifestManager {
       this.startRefreshTimer();
     }
   }
+
+  private buildManifestUrl(): string {
+    if (!this.isSignedManifestModeEnabled()) {
+      return `${this.config.apexUrl}/services/${this.config.serviceId}/manifest?env=${this.config.environment}`;
+    }
+
+    return `${this.config.apexUrl}/sdk/manifest`;
+  }
+
+  private parseManifestResponse(data: unknown) {
+    if (!this.isSignedManifestModeEnabled()) {
+      return apexManifestSchema.safeParse(data);
+    }
+
+    const result = this.parseSignedManifestEnvelope(data);
+    if (!result.success) {
+      return result;
+    }
+
+    if (this.config.verifySignedManifest !== false) {
+      const verified = verifySignedManifestEnvelope({
+        envelope: result.data,
+        apiKey: this.config.apiKey,
+      });
+
+      if (!verified) {
+        return {
+          success: false as const,
+          error: {
+            issues: [
+              {
+                code: 'custom',
+                path: ['signature'],
+                message: 'Invalid manifest signature',
+              },
+            ],
+          },
+        };
+      }
+    }
+
+    const contextValidation = this.validateSignedManifestContext(result.data);
+    if (contextValidation) {
+      return contextValidation;
+    }
+
+    return apexManifestSchema.safeParse(result.data.manifest);
+  }
+
+  private isSignedManifestModeEnabled(): boolean {
+    if (typeof this.config.useSignedManifest === 'boolean') {
+      return this.config.useSignedManifest;
+    }
+
+    return this.config.apiKey.startsWith('apx_sdk_');
+  }
+
+  private parseSignedManifestEnvelope(data: unknown) {
+    return signedManifestEnvelopeSchema.safeParse(data);
+  }
+
+  private validateSignedManifestContext(
+    envelope: SignedManifestEnvelope,
+  ): ParseFailure | null {
+    if (
+      envelope.signature.expiresAt &&
+      Date.parse(envelope.signature.expiresAt) <= Date.now()
+    ) {
+      return createManifestIssue(
+        ['signature', 'expiresAt'],
+        'Manifest signature has expired',
+      );
+    }
+
+    if (this.config.serviceId && envelope.manifest.serviceId !== this.config.serviceId) {
+      return createManifestIssue(
+        ['manifest', 'serviceId'],
+        'Signed manifest serviceId does not match requested serviceId',
+      );
+    }
+
+    if (this.config.environment && envelope.manifest.environment !== this.config.environment) {
+      return createManifestIssue(
+        ['manifest', 'environment'],
+        'Signed manifest environment does not match requested environment',
+      );
+    }
+
+    return null;
+  }
+}
+
+function createManifestIssue(path: ZodIssueLike['path'], message: string): ParseFailure {
+  return {
+    success: false,
+    error: {
+      issues: [{ code: 'custom', path, message }],
+    },
+  };
+}
+
+function validateConfig(config: FullConfig): void {
+  const signedManifestMode = typeof config.useSignedManifest === 'boolean'
+    ? config.useSignedManifest
+    : config.apiKey.startsWith('apx_sdk_');
+
+  if (signedManifestMode) {
+    return;
+  }
+
+  if (!config.serviceId || !config.environment) {
+    throw new ApexMiddlewareInitializationError(
+      'Apex legacy unsigned manifest mode requires serviceId and environment. Provide both options, use a scoped apx_sdk_ token, or set useSignedManifest: true.',
+    );
+  }
+}
+
+function toZodIssueLikes(issues: readonly ZodIssueLike[]): ZodIssueLike[] {
+  return issues.map((issue) => ({
+    code: issue.code,
+    path: issue.path,
+    message: issue.message,
+  }));
 }

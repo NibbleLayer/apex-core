@@ -1,6 +1,6 @@
 {
   "name": "@nibblelayer/apex-control-plane-core",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Public Apex manifest construction helpers for control-plane consumers.",
   "license": "Apache-2.0",
   "type": "module",

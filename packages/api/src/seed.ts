@@ -13,20 +13,79 @@
 
 import pg from 'pg';
 import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+import { hashApiKey } from './crypto.js';
 
 // ---------------------------------------------------------------------------
 // Helpers (self-contained — no dependency on Drizzle or app modules)
 // ---------------------------------------------------------------------------
 
-function createId(): string {
+export function createId(): string {
   return `c${crypto.randomBytes(16).toString('hex').slice(0, 24)}`;
 }
 
-function generateApiKey(): { rawKey: string; keyHash: string } {
+export async function generateApiKey(): Promise<{ rawKey: string; keyHash: string }> {
   const bytes = crypto.randomBytes(32);
   const rawKey = `apex_${bytes.toString('hex')}`;
-  const keyHash = crypto.createHash('sha256').update(rawKey).digest('hex');
+  const keyHash = await hashApiKey(rawKey);
   return { rawKey, keyHash };
+}
+
+export function getSeedKeyFilePath(): string {
+  return path.resolve(
+    process.env.GIT_ROOT || path.resolve(import.meta.dirname, '../../../'),
+    '.apex-seed-key',
+  );
+}
+
+export async function writeSeedKey(rawKey: string): Promise<void> {
+  try {
+    fs.writeFileSync(getSeedKeyFilePath(), rawKey, 'utf-8');
+  } catch {
+    // Non-fatal
+  }
+}
+
+export async function bootstrapOrg(params: {
+  connectionString: string;
+  name: string;
+  slug: string;
+  label: string;
+}): Promise<{ orgId: string; keyId: string; rawKey: string } | null> {
+  const { connectionString, name, slug, label } = params;
+  const pool = new pg.Pool({ connectionString });
+
+  try {
+    const { rows: existing } = await pool.query(
+      'SELECT id FROM organizations WHERE slug = $1',
+      [slug],
+    );
+
+    if (existing.length > 0) {
+      return null; // Already exists
+    }
+
+    const orgId = createId();
+    const keyId = createId();
+    const { rawKey, keyHash } = await generateApiKey();
+
+    await pool.query(
+      'INSERT INTO organizations (id, name, slug) VALUES ($1, $2, $3)',
+      [orgId, name, slug],
+    );
+
+    await pool.query(
+      'INSERT INTO api_keys (id, organization_id, key_hash, label) VALUES ($1, $2, $3, $4)',
+      [keyId, orgId, keyHash, label],
+    );
+
+    await writeSeedKey(rawKey);
+
+    return { orgId, keyId, rawKey };
+  } finally {
+    await pool.end();
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -61,57 +120,35 @@ async function main() {
   const { name, slug, label } = parseArgs(process.argv.slice(2));
   const connectionString = process.env.DATABASE_URL || 'postgresql://apex:apex_dev@localhost:5433/apex_dev';
 
-  const pool = new pg.Pool({ connectionString });
+  const result = await bootstrapOrg({ connectionString, name, slug, label });
 
-  try {
-    // Check if org already exists
-    const { rows: existing } = await pool.query(
-      'SELECT id FROM organizations WHERE slug = $1',
-      [slug],
-    );
-
-    if (existing.length > 0) {
-      console.log(`\n  Organization "${slug}" already exists — skipping.\n`);
-      return;
-    }
-
-    const orgId = createId();
-    const keyId = createId();
-    const { rawKey, keyHash } = generateApiKey();
-
-    // Insert organization
-    await pool.query(
-      'INSERT INTO organizations (id, name, slug) VALUES ($1, $2, $3)',
-      [orgId, name, slug],
-    );
-
-    // Insert API key
-    await pool.query(
-      'INSERT INTO api_keys (id, organization_id, key_hash, label) VALUES ($1, $2, $3, $4)',
-      [keyId, orgId, keyHash, label],
-    );
-
-    console.log('');
-    console.log('  ✅  Bootstrap complete');
-    console.log('');
-    console.log(`  Organization : ${name}`);
-    console.log(`  Slug         : ${slug}`);
-    console.log(`  Key label    : ${label}`);
-    console.log('');
-    console.log('  ┌──────────────────────────────────────────────────────────────');
-    console.log('  │  API KEY (save this — it will NOT be shown again)');
-    console.log('  │');
-    console.log(`  │  ${rawKey}`);
-    console.log('  └──────────────────────────────────────────────────────────────');
-    console.log('');
-    console.log('  Use it: curl -H "Authorization: Bearer <key>" http://localhost:3000/...');
-    console.log('');
-  } finally {
-    await pool.end();
+  if (result === null) {
+    console.log(`\n  Organization "${slug}" already exists — skipping.\n`);
+    return;
   }
+
+  console.log('');
+  console.log('  ✅  Bootstrap complete');
+  console.log('');
+  console.log(`  Organization : ${name}`);
+  console.log(`  Slug         : ${slug}`);
+  console.log(`  Key label    : ${label}`);
+  console.log('');
+  console.log('  ┌──────────────────────────────────────────────────────────────');
+  console.log('  │  API KEY (save this — it will NOT be shown again)');
+  console.log('  │');
+  console.log(`  │  ${result.rawKey}`);
+  console.log('  └──────────────────────────────────────────────────────────────');
+  console.log('');
+  console.log('  Use it: curl -H "Authorization: Bearer <key>" http://localhost:3000/...');
+  console.log('');
 }
 
-main().catch((err) => {
-  console.error('\n  ❌ Seed failed:', err.message || err);
-  process.exitCode = 1;
-});
+// Only run main() when this file is executed directly (not imported)
+const isMain = import.meta.url === `file://${process.argv[1]}` || import.meta.url === `file://${path.resolve(process.argv[1])}`;
+if (isMain) {
+  main().catch((err) => {
+    console.error('\n  ❌ Seed failed:', err.message || err);
+    process.exitCode = 1;
+  });
+}

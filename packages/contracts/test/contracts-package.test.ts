@@ -20,8 +20,57 @@ describe('@nibblelayer/apex-contracts public surface', () => {
     expect(contracts.createRouteSchema).toBeDefined();
     expect(contracts.createPriceRuleSchema).toBeDefined();
     expect(contracts.createDiscoverySchema).toBeDefined();
+    expect(contracts.createServiceDomainSchema).toBeDefined();
+    expect(contracts.serviceDomainSchema).toBeDefined();
     expect(contracts.createWebhookSchema).toBeDefined();
     expect(contracts.settlementSchema).toBeDefined();
+    expect(contracts.manifestSignatureSchema).toBeDefined();
+    expect(contracts.signedManifestEnvelopeSchema).toBeDefined();
+    expect(contracts.canonicalizeJson).toBeDefined();
+    expect(contracts.buildManifestSigningMessage).toBeDefined();
+  });
+
+  it('canonicalizes JSON with stable sorted object keys', () => {
+    expect(
+      contracts.canonicalizeJson({ b: 2, a: { d: 4, c: 3 }, list: [{ y: true, x: false }] }),
+    ).toBe(
+      contracts.canonicalizeJson({ list: [{ x: false, y: true }], a: { c: 3, d: 4 }, b: 2 }),
+    );
+  });
+
+  it('validates a signed manifest envelope shape', () => {
+    const manifest = {
+      serviceId: 'svc_123',
+      environment: 'test',
+      version: 1,
+      network: 'eip155:84532',
+      facilitatorUrl: 'https://x402.org/facilitator',
+      wallet: {
+        address: '0x742d35Cc6634C0532925a3b844Bc9e7595f2bD18',
+        token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        network: 'eip155:84532',
+      },
+      verifiedDomains: ['weather.example.com'],
+      routes: {},
+      eventsEndpoint: '/events',
+      idempotencyEnabled: true,
+      refreshIntervalMs: 60000,
+      checksum: 'abc123',
+    };
+
+    expect(
+      contracts.signedManifestEnvelopeSchema.safeParse({
+        manifest,
+        signature: {
+          alg: 'HS256',
+          kid: 'key_123',
+          issuedAt: '2026-04-24T00:00:00.000Z',
+          expiresAt: '2026-04-24T00:05:00.000Z',
+          payloadDigest: 'a'.repeat(64),
+          value: 'b'.repeat(64),
+        },
+      }).success,
+    ).toBe(true);
   });
 
   it('defines the root and ./schemas package exports', () => {

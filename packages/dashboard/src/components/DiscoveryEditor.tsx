@@ -1,7 +1,7 @@
-import { createSignal, onMount, Show } from 'solid-js';
+import { createMemo, createSignal, For, onMount, Show } from 'solid-js';
 import { api } from '../api/client';
 import { buildDiscoveryPayload } from '../api/payloads';
-import type { DiscoveryMetadata } from '../api/types';
+import type { DiscoveryMetadata, DiscoveryPreviewResponse, DiscoveryQualityCheck } from '../api/types';
 
 interface DiscoveryEditorProps {
   routeId: string;
@@ -14,6 +14,7 @@ export function DiscoveryEditor(props: DiscoveryEditorProps) {
   const [saving, setSaving] = createSignal(false);
   const [error, setError] = createSignal('');
   const [success, setSuccess] = createSignal('');
+  const [serverPreview, setServerPreview] = createSignal<DiscoveryPreviewResponse | null>(null);
 
   // Form fields
   const [discoverable, setDiscoverable] = createSignal(false);
@@ -24,7 +25,27 @@ export function DiscoveryEditor(props: DiscoveryEditorProps) {
   const [docsUrl, setDocsUrl] = createSignal('');
   const [inputSchema, setInputSchema] = createSignal('{}');
   const [outputSchema, setOutputSchema] = createSignal('{}');
-  const [published, setPublished] = createSignal(false);
+  const [reviewStatus, setReviewStatus] = createSignal<'draft' | 'in_review' | 'published' | 'rejected'>('draft');
+  const [indexingStatus, setIndexingStatus] = createSignal<'not_submitted' | 'queued' | 'indexed' | 'failed'>('not_submitted');
+  const [indexingError, setIndexingError] = createSignal('');
+
+  const qualityChecks = createMemo<DiscoveryQualityCheck[]>(() => {
+    const checks: DiscoveryQualityCheck[] = [];
+    const parsedTags = tags().split(',').map((tag) => tag.trim()).filter(Boolean);
+    const descriptionValue = description().trim();
+
+    if (!descriptionValue) checks.push({ level: 'error', message: 'Description is required before publishing.' });
+    if (!category().trim()) checks.push({ level: 'error', message: 'Category is required before publishing.' });
+    if (!mimeType().trim()) checks.push({ level: 'error', message: 'MIME type is required before publishing.' });
+    if (inputSchema().trim() === '{}' || !inputSchema().trim()) checks.push({ level: 'error', message: 'Input schema is required before publishing.' });
+    if (outputSchema().trim() === '{}' || !outputSchema().trim()) checks.push({ level: 'error', message: 'Output schema is required before publishing.' });
+    if (!discoverable()) checks.push({ level: 'error', message: 'Route must be discoverable before publishing.' });
+    if (descriptionValue && descriptionValue.length < 30) checks.push({ level: 'warning', message: 'Description is short; use at least 30 characters for better Bazaar listings.' });
+    if (parsedTags.length === 0) checks.push({ level: 'warning', message: 'Add tags to improve Bazaar search visibility.' });
+    if (!docsUrl().trim()) checks.push({ level: 'warning', message: 'Add a docs URL to help buyers evaluate the endpoint.' });
+
+    return checks;
+  });
 
   async function loadDiscovery() {
     try {
@@ -40,7 +61,14 @@ export function DiscoveryEditor(props: DiscoveryEditorProps) {
       setDocsUrl(result.docsUrl || '');
       setInputSchema(result.inputSchema ? JSON.stringify(result.inputSchema, null, 2) : '{}');
       setOutputSchema(result.outputSchema ? JSON.stringify(result.outputSchema, null, 2) : '{}');
-      setPublished(result.published);
+      setReviewStatus(result.reviewStatus ?? (result.published ? 'published' : 'draft'));
+      setIndexingStatus(result.indexingStatus ?? 'not_submitted');
+      setIndexingError(result.indexingError ?? '');
+      try {
+        setServerPreview(await api.getDiscoveryPreview(props.routeId));
+      } catch {
+        setServerPreview(null);
+      }
     } catch (err) {
       // 404 means no discovery config yet — that's fine
       const message = err instanceof Error ? err.message : '';
@@ -70,14 +98,10 @@ export function DiscoveryEditor(props: DiscoveryEditorProps) {
         docsUrl: docsUrl(),
         inputSchema: inputSchema(),
         outputSchema: outputSchema(),
-        published: published(),
+        reviewStatus: reviewStatus(),
       });
 
-      const hadExistingConfig = data() !== null;
       await api.createDiscovery(props.routeId, payload);
-      if (!hadExistingConfig && payload.published) {
-        await api.createDiscovery(props.routeId, payload);
-      }
       setSuccess('Discovery metadata saved');
       loadDiscovery();
     } catch (err) {
@@ -107,16 +131,27 @@ export function DiscoveryEditor(props: DiscoveryEditorProps) {
               <span class="font-medium text-gray-700">Discoverable</span>
             </label>
 
-            {/* Published toggle */}
-            <label class="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={published()}
-                onChange={(e) => setPublished(e.currentTarget.checked)}
-                class="rounded"
-              />
-              <span class="font-medium text-gray-700">Published</span>
-            </label>
+            <div>
+              <label class="block text-xs font-medium text-gray-600 mb-1">Review status</label>
+              <select
+                value={reviewStatus()}
+                onChange={(e) => setReviewStatus(e.currentTarget.value as 'draft' | 'in_review' | 'published' | 'rejected')}
+                class="w-full px-3 py-1.5 border rounded text-sm"
+              >
+                <option value="draft">Draft</option>
+                <option value="in_review">In review</option>
+                <option value="published">Published</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="rounded border bg-gray-50 p-3 text-sm">
+            <p class="font-medium text-gray-700">Indexing visibility</p>
+            <p class="text-gray-600">Status: <span class="font-mono">{indexingStatus()}</span></p>
+            <Show when={indexingError()}>
+              <p class="text-red-600">Indexing error: {indexingError()}</p>
+            </Show>
           </div>
 
           <div class="grid grid-cols-2 gap-4">
@@ -141,6 +176,29 @@ export function DiscoveryEditor(props: DiscoveryEditorProps) {
               />
             </div>
           </div>
+
+          <section class="rounded border p-3 space-y-3">
+            <div>
+              <h4 class="text-sm font-semibold text-gray-800">Quality checks</h4>
+              <Show when={qualityChecks().length > 0} fallback={<p class="text-green-700 text-sm">No blocking quality issues detected.</p>}>
+                <ul class="space-y-1 mt-2">
+                  <For each={qualityChecks()}>{(check) => (
+                    <li class={check.level === 'error' ? 'text-red-600 text-sm' : 'text-amber-600 text-sm'}>
+                      {check.level === 'error' ? 'Error' : 'Warning'}: {check.message}
+                    </li>
+                  )}</For>
+                </ul>
+              </Show>
+            </div>
+            <div>
+              <h4 class="text-sm font-semibold text-gray-800">Listing preview</h4>
+              <div class="mt-2 rounded bg-gray-50 p-3 text-sm text-gray-700">
+                <p class="font-medium">{category() || serverPreview()?.preview.title || 'Untitled Bazaar listing'}</p>
+                <p>{description() || serverPreview()?.preview.summary || 'Add a description to preview the Bazaar summary.'}</p>
+                <p class="text-xs text-gray-500 mt-2">MIME: {mimeType() || 'not set'} · Tags: {tags() || 'none'} · Review: {reviewStatus()}</p>
+              </div>
+            </div>
+          </section>
 
           <div>
             <label class="block text-xs font-medium text-gray-600 mb-1">Description</label>

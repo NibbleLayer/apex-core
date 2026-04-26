@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import { Hono } from 'hono';
-import { eq, and } from 'drizzle-orm';
-import { webhookEndpoints, services } from '@nibblelayer/apex-persistence/db';
+import { eq, and, desc } from 'drizzle-orm';
+import { webhookEndpoints, webhookDeliveries, services } from '@nibblelayer/apex-persistence/db';
 import { createWebhookSchema } from '@nibblelayer/apex-contracts/schemas';
 import { authMiddleware } from '../middleware/auth.js';
 import { getDb } from '../db/resolver.js';
@@ -87,6 +87,50 @@ router.get('/services/:id/webhooks', async (c) => {
     .where(eq(webhookEndpoints.serviceId, serviceId));
 
   return c.json(result);
+});
+
+// GET /services/:id/webhook-deliveries - recent webhook delivery visibility.
+router.get('/services/:id/webhook-deliveries', async (c) => {
+  const db = await getDb();
+  const serviceId = c.req.param('id');
+  const orgId = c.get('organizationId');
+
+  const [svc] = await db
+    .select()
+    .from(services)
+    .where(and(eq(services.id, serviceId), eq(services.organizationId, orgId)))
+    .limit(1);
+
+  if (!svc) {
+    return c.json({ error: 'Service not found' }, 404);
+  }
+
+  const status = c.req.query('status');
+  const conditions = [eq(webhookEndpoints.serviceId, serviceId)];
+  if (status) {
+    conditions.push(eq(webhookDeliveries.status, status as any));
+  }
+
+  const deliveries = await db
+    .select({
+      id: webhookDeliveries.id,
+      endpointUrl: webhookEndpoints.url,
+      status: webhookDeliveries.status,
+      attempts: webhookDeliveries.attempts,
+      lastAttemptAt: webhookDeliveries.lastAttemptAt,
+      nextAttemptAt: webhookDeliveries.nextAttemptAt,
+      deliveredAt: webhookDeliveries.deliveredAt,
+      lastError: webhookDeliveries.lastError,
+      eventId: webhookDeliveries.eventId,
+      createdAt: webhookDeliveries.createdAt,
+    })
+    .from(webhookDeliveries)
+    .innerJoin(webhookEndpoints, eq(webhookDeliveries.webhookEndpointId, webhookEndpoints.id))
+    .where(and(...conditions))
+    .orderBy(desc(webhookDeliveries.createdAt))
+    .limit(50);
+
+  return c.json({ deliveries });
 });
 
 // PATCH /webhooks/:id - Update webhook

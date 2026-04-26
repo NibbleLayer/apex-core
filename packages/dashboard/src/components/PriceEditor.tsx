@@ -2,7 +2,12 @@ import { createSignal, For, Show, onMount } from 'solid-js';
 import { api } from '../api/client';
 import { buildCreatePricePayload } from '../api/payloads';
 import type { PriceRule } from '../api/types';
-import { networkLabel } from '../utils/network';
+import {
+  formatPricingTokenLabel,
+  normalizeUsdAmountInput,
+  PRICING_TOKEN_PRESETS,
+  type PricingTokenPresetId,
+} from '../utils/pricing';
 
 interface PriceEditorProps {
   routeId: string;
@@ -12,10 +17,16 @@ interface PriceEditorProps {
 export function PriceEditor(props: PriceEditorProps) {
   const [pricing, setPricing] = createSignal<PriceRule[]>([]);
   const [showForm, setShowForm] = createSignal(false);
+  const [showAdvancedFields, setShowAdvancedFields] = createSignal(false);
   const [amount, setAmount] = createSignal('');
-  const [token, setToken] = createSignal('');
-  const [network, setNetwork] = createSignal('eip155:84532');
+  const [selectedPresetId, setSelectedPresetId] = createSignal<PricingTokenPresetId>('test-usdc-base-sepolia');
+  const [rawToken, setRawToken] = createSignal('');
+  const [rawNetwork, setRawNetwork] = createSignal('');
   const [error, setError] = createSignal('');
+
+  const selectedPreset = () => PRICING_TOKEN_PRESETS.find((preset) => preset.id === selectedPresetId()) ?? PRICING_TOKEN_PRESETS[0];
+  const resolvedToken = () => rawToken().trim() || selectedPreset().token;
+  const resolvedNetwork = () => rawNetwork().trim() || selectedPreset().network;
 
   async function loadPricing() {
     try {
@@ -30,11 +41,32 @@ export function PriceEditor(props: PriceEditorProps) {
 
   async function createPrice(e: Event) {
     e.preventDefault();
+    const normalizedAmount = normalizeUsdAmountInput(amount());
+    if (!normalizedAmount) {
+      setError('Enter a positive USD price amount before saving.');
+      return;
+    }
+
+    if (!resolvedToken()) {
+      setError('Select a token preset or enter a token address in advanced fields.');
+      return;
+    }
+
+    if (!resolvedNetwork()) {
+      setError('Select a token preset or enter a CAIP network in advanced fields.');
+      return;
+    }
+
     try {
-      await api.createPrice(props.routeId, buildCreatePricePayload({ amount: amount(), token: token(), network: network() }));
+      await api.createPrice(
+        props.routeId,
+        buildCreatePricePayload({ amount: normalizedAmount, token: resolvedToken(), network: resolvedNetwork() }),
+      );
       setShowForm(false);
+      setShowAdvancedFields(false);
       setAmount('');
-      setToken('');
+      setRawToken('');
+      setRawNetwork('');
       await loadPricing();
       props.onRefresh();
     } catch (err) {
@@ -60,8 +92,7 @@ export function PriceEditor(props: PriceEditorProps) {
                     {price.scheme}
                   </span>
                   <span class="font-medium text-gray-900">{price.amount}</span>
-                  <span class="text-gray-500 text-xs font-mono truncate max-w-[150px]">{price.token}</span>
-                  <span class="text-gray-500 text-xs">{networkLabel(price.network)}</span>
+                  <span class="text-gray-500 text-xs">{formatPricingTokenLabel(price.token, price.network)}</span>
                 </div>
                 <span class={`w-2 h-2 rounded-full ${price.active ? 'bg-green-500' : 'bg-gray-300'}`} />
               </div>
@@ -86,56 +117,68 @@ export function PriceEditor(props: PriceEditorProps) {
       <Show when={showForm()}>
         <form onSubmit={createPrice} class="bg-white p-4 rounded border space-y-3">
           <div class="grid grid-cols-2 gap-3">
-            <div class="col-span-2">
-              <label class="block text-xs font-medium text-gray-600 mb-1">Scheme</label>
-              <input
-                type="text"
-                value="Exact"
-                disabled
-                class="w-full px-3 py-1.5 border rounded text-sm bg-gray-50 text-gray-600"
-              />
-            </div>
             <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1">Amount *</label>
+              <label for="price-usd" class="block text-xs font-medium text-gray-600 mb-1">Price (USD)</label>
               <input
+                id="price-usd"
                 type="text"
-                required
                 value={amount()}
                 onInput={(e) => setAmount(e.currentTarget.value)}
                 class="w-full px-3 py-1.5 border rounded text-sm"
-                placeholder="$0.01"
+                placeholder="0.01"
               />
             </div>
             <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1">Token Address *</label>
-              <input
-                type="text"
-                required
-                value={token()}
-                onInput={(e) => setToken(e.currentTarget.value)}
-                class="w-full px-3 py-1.5 border rounded text-sm font-mono"
-                placeholder="0x..."
-              />
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1">Network</label>
+              <label for="price-token-preset" class="block text-xs font-medium text-gray-600 mb-1">Token preset</label>
               <select
-                value={network()}
-                onChange={(e) => setNetwork(e.currentTarget.value)}
+                id="price-token-preset"
+                value={selectedPresetId()}
+                onChange={(e) => setSelectedPresetId(e.currentTarget.value as PricingTokenPresetId)}
                 class="w-full px-3 py-1.5 border rounded text-sm"
               >
-                <option value="eip155:84532">Base Sepolia</option>
-                <option value="eip155:8453">Base</option>
-                <option value="eip155:1">Ethereum</option>
-                <option value="eip155:11155111">Sepolia</option>
+                <For each={PRICING_TOKEN_PRESETS}>
+                  {(preset) => <option value={preset.id}>{preset.label}</option>}
+                </For>
               </select>
             </div>
+            <div class="col-span-2">
+              <button
+                type="button"
+                onClick={() => setShowAdvancedFields((current) => !current)}
+                class="text-xs text-blue-600 hover:underline"
+              >
+                {showAdvancedFields() ? 'Hide advanced fields' : 'Show advanced fields'}
+              </button>
+            </div>
+            <Show when={showAdvancedFields()}>
+              <div>
+                <label for="raw-token-address" class="block text-xs font-medium text-gray-600 mb-1">Raw token address</label>
+                <input
+                  id="raw-token-address"
+                  type="text"
+                  value={rawToken()}
+                  onInput={(e) => setRawToken(e.currentTarget.value)}
+                  class="w-full px-3 py-1.5 border rounded text-sm font-mono"
+                  placeholder="0x..."
+                />
+              </div>
+              <div>
+                <label for="raw-caip-network" class="block text-xs font-medium text-gray-600 mb-1">Raw CAIP network</label>
+                <input
+                  id="raw-caip-network"
+                  type="text"
+                  value={rawNetwork()}
+                  onInput={(e) => setRawNetwork(e.currentTarget.value)}
+                  class="w-full px-3 py-1.5 border rounded text-sm font-mono"
+                  placeholder="eip155:84532"
+                />
+              </div>
+            </Show>
           </div>
           <div class="flex gap-2">
             <button
               type="submit"
-              disabled={!amount().trim() || !token().trim()}
-              class="px-3 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 disabled:opacity-50"
+              class="px-3 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
             >
               Save
             </button>

@@ -24,6 +24,18 @@ Self-hosted Apex control plane for x402-powered services.
 | `@nibblelayer/apex-api` | Internal self-hosted API application. |
 | `@nibblelayer/apex-dashboard` | Internal self-hosted dashboard application. |
 
+## Product architecture
+
+Apex is designed as an x402 control plane: one-line SDK integration in seller APIs, with route pricing, facilitator/network selection, discovery metadata, events, settlements, and publish workflows managed through the control plane.
+
+See:
+- [Product Architecture](./docs/PRODUCT_ARCHITECTURE.md)
+- [One-Line Integration Contract](./docs/ONE_LINE_INTEGRATION.md)
+- [Apex vs Base x402](./docs/X402_COMPARISON.md)
+- [Business Repository Boundary](./docs/BUSINESS_REPO_BOUNDARY.md)
+- [Implementation Roadmap](./docs/IMPLEMENTATION_ROADMAP.md)
+- [Publication Readiness](./docs/PUBLICATION_READINESS.md)
+
 ## License
 
 This repository is released under the [Apache License 2.0](./LICENSE).
@@ -40,11 +52,12 @@ This repository is released under the [Apache License 2.0](./LICENSE).
 
 ```bash
 pnpm install --frozen-lockfile
-./scripts/setup.sh
-pnpm seed -- --name "My Org" --slug "my-org" --label "Admin Key"
-pnpm dev:api
-pnpm dev:dashboard
+pnpm dev
 ```
+
+This starts PostgreSQL, pushes the schema, seeds the initial organization, and launches both the API and Dashboard.
+
+On first run, an API key is written to `.apex-seed-key`. Use this key to authenticate with the dashboard.
 
 - API: `http://localhost:3000`
 - Dashboard: `http://localhost:5173`

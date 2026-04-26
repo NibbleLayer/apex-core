@@ -93,7 +93,7 @@ describe('dashboard payload helpers', () => {
         docsUrl: 'https://docs.example.com/weather',
         inputSchema: '{"type":"object","properties":{"city":{"type":"string"}}}',
         outputSchema: '{"type":"object","properties":{"temperature":{"type":"number"}}}',
-        published: true,
+        reviewStatus: 'published',
       }),
     ).toEqual({
       discoverable: true,
@@ -114,7 +114,7 @@ describe('dashboard payload helpers', () => {
           temperature: { type: 'number' },
         },
       },
-      published: true,
+      reviewStatus: 'published',
     });
   });
 
@@ -129,7 +129,7 @@ describe('dashboard payload helpers', () => {
         docsUrl: 'https://docs.example.com/weather',
         inputSchema: '{not-json}',
         outputSchema: '{}',
-        published: false,
+        reviewStatus: 'draft',
       }),
     ).toThrow(/input schema/i);
   });
@@ -145,7 +145,7 @@ describe('dashboard payload helpers', () => {
         docsUrl: 'https://docs.example.com/weather',
         inputSchema: '{}',
         outputSchema: '{not-json}',
-        published: false,
+        reviewStatus: 'draft',
       }),
     ).toThrow(/output schema/i);
   });
