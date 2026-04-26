@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import { eq } from 'drizzle-orm';
 import { apiKeys } from '@nibblelayer/apex-persistence/db';
 import { getDb } from '../db/resolver.js';
+import { hashApiKey, verifyApiKey } from '../crypto.js';
 
 export function createAuthMiddleware() {
   return async (c: any, next: () => Promise<void>) => {
@@ -11,19 +12,25 @@ export function createAuthMiddleware() {
     }
 
     const rawKey = authHeader.slice(7);
-    const keyHash = crypto.createHash('sha256').update(rawKey).digest('hex');
 
     const db = await getDb();
-    const [found] = await db
+    const allKeys = await db
       .select({
         id: apiKeys.id,
         organizationId: apiKeys.organizationId,
         label: apiKeys.label,
         revokedAt: apiKeys.revokedAt,
+        keyHash: apiKeys.keyHash,
       })
-      .from(apiKeys)
-      .where(eq(apiKeys.keyHash, keyHash))
-      .limit(1);
+      .from(apiKeys);
+
+    let found = null;
+    for (const keyRow of allKeys) {
+      if (await verifyApiKey(rawKey, keyRow.keyHash)) {
+        found = keyRow;
+        break;
+      }
+    }
 
     if (!found) {
       return c.json({ error: 'Invalid API key' }, 401);
@@ -43,6 +50,7 @@ export function createAuthMiddleware() {
     c.set('organizationId', found.organizationId);
     c.set('apiKeyId', found.id);
     c.set('apiKeyLabel', found.label);
+    c.set('apiKeyRaw', rawKey);
 
     await next();
   };
@@ -53,9 +61,9 @@ export const authMiddleware = createAuthMiddleware();
 /**
  * Generate a new API key and return both the raw key (shown once) and the hash (stored).
  */
-export function generateApiKey(): { rawKey: string; keyHash: string } {
+export async function generateApiKey(): Promise<{ rawKey: string; keyHash: string }> {
   const bytes = crypto.randomBytes(32);
   const rawKey = `apex_${bytes.toString('hex')}`;
-  const keyHash = crypto.createHash('sha256').update(rawKey).digest('hex');
+  const keyHash = await hashApiKey(rawKey);
   return { rawKey, keyHash };
 }

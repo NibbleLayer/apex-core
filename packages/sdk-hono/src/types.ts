@@ -1,12 +1,12 @@
 import type { ApexManifest, PaymentEventType } from '@nibblelayer/apex-contracts';
 
 export interface ApexClientConfig {
-  /** Apex API key (apex_...) */
+  /** Apex admin API key (apex_...) or scoped SDK token (apx_sdk_..., defaults to signed manifests) */
   apiKey: string;
-  /** Service ID from Apex */
-  serviceId: string;
-  /** Environment to use */
-  environment: 'test' | 'prod';
+  /** Service ID from Apex. Optional for signed scoped SDK-token manifests. */
+  serviceId?: string;
+  /** Environment to use. Optional for signed scoped SDK-token manifests. */
+  environment?: 'test' | 'prod';
   /** Apex API base URL */
   apexUrl: string;
   /** Manifest refresh interval in ms (default: 60000) */
@@ -15,6 +15,14 @@ export interface ApexClientConfig {
   enableIdempotency?: boolean;
   /** Event delivery mode (default: 'fire-and-forget') */
   eventDelivery?: 'fire-and-forget' | 'batched';
+  /** Fetch manifests from the signed SDK endpoint (default: true for apx_sdk_ tokens, false for apex_ keys) */
+  useSignedManifest?: boolean;
+  /** Verify signed manifest HMAC when signed mode is enabled (default: true) */
+  verifySignedManifest?: boolean;
+  /** SDK route candidate registration (default: observe for apx_sdk_ tokens, off otherwise) */
+  routeRegistration?: 'off' | 'observe';
+  /** SDK route registration heartbeat interval in ms (default: 60000) */
+  routeHeartbeatIntervalMs?: number;
 }
 
 export interface ApexClient {

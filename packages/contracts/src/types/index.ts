@@ -5,6 +5,13 @@ export type { WalletDestination } from './wallet.js';
 export type { Route, HttpMethod } from './route.js';
 export type { PriceRule, PaymentScheme } from './pricing.js';
 export type { DiscoveryMetadata } from './discovery.js';
+export type {
+  CreateServiceDomainRequest,
+  ServiceDomain,
+  ServiceDomainStatus,
+  ServiceDomainVerificationMethod,
+  ServiceDomainVerificationResult,
+} from './service-domain.js';
 export type { Settlement, SettlementStatus } from './settlement.js';
 export type {
   PaymentEvent,
@@ -13,8 +20,10 @@ export type {
 } from './event.js';
 export type {
   ApexManifest,
+  ManifestSignature,
   ManifestRoute,
   ManifestRouteAccepts,
   ManifestRouteExtensions,
   ManifestWallet,
+  SignedManifestEnvelope,
 } from './manifest.js';

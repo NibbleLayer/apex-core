@@ -51,6 +51,7 @@ describe('Edge Case Regression', () => {
       routeId,
       type: 'payment.required',
       requestId: 'req_dedup_regression',
+      paymentIdentifier: 'pay_dedup_regression',
       timestamp: new Date().toISOString(),
     };
 
@@ -343,6 +344,8 @@ describe('Edge Case Regression', () => {
         tags: ['forecast'],
         description: 'Weather data',
         mimeType: 'application/json',
+        inputSchema: { type: 'object' },
+        outputSchema: { type: 'object' },
       }),
     });
     expect(discRes.status).toBe(201);
@@ -357,7 +360,7 @@ describe('Edge Case Regression', () => {
     expect(manifest1.routes[routeKey].extensions?.bazaar).toBeUndefined();
 
     // Now publish
-    await app.request(`/routes/${routeId}/discovery`, {
+    const discUpdateRes = await app.request(`/routes/${routeId}/discovery`, {
       method: 'POST',
       headers,
       body: JSON.stringify({
@@ -367,6 +370,7 @@ describe('Edge Case Regression', () => {
         published: true,
       }),
     });
+    expect(discUpdateRes.status).toBe(200);
 
     // Fetch manifest — bazaar extension present
     const manifestRes2 = await app.request(`/services/${serviceId}/manifest?env=test`, {

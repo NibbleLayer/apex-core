@@ -11,6 +11,10 @@ export interface ManifestRouteExtensions {
   'payment-identifier'?: {
     required: boolean;
   };
+  apex?: {
+    routeId: string;
+    routeKey: string;
+  };
   bazaar?: {
     discoverable: boolean;
     category?: string;
@@ -40,9 +44,24 @@ export interface ApexManifest {
   network: string;
   facilitatorUrl: string;
   wallet: ManifestWallet;
+  verifiedDomains: string[];
   routes: Record<string, ManifestRoute>;
   eventsEndpoint: string;
   idempotencyEnabled: boolean;
   refreshIntervalMs: number;
   checksum: string;
+}
+
+export interface ManifestSignature {
+  alg: 'HS256';
+  kid: string;
+  issuedAt: string;
+  expiresAt?: string;
+  payloadDigest: string;
+  value: string;
+}
+
+export interface SignedManifestEnvelope {
+  manifest: ApexManifest;
+  signature: ManifestSignature;
 }

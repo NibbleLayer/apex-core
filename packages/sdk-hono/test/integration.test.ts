@@ -25,6 +25,7 @@ vi.mock('../src/manifest.js', () => ({
 vi.mock('../src/events.js', () => ({
   SDKEventEmitter: vi.fn().mockImplementation(() => ({
     emit: vi.fn(),
+    setServiceId: vi.fn(),
     setEventsEndpoint: vi.fn(),
   })),
 }));

@@ -1,10 +1,15 @@
-import crypto from 'node:crypto';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, isNull, lte, or } from 'drizzle-orm';
 import { webhookDeliveries, webhookEndpoints } from '@nibblelayer/apex-persistence/db';
 import { getDb } from '../db/resolver.js';
+import { signWebhookPayload } from '../services/webhook-signing.js';
 
 const MAX_ATTEMPTS = 5;
 const POLL_INTERVAL_MS = 5000;
+
+export function calculateNextAttemptAt(attempts: number, now = new Date()): Date {
+  const delaySeconds = Math.min(60 * 60, 2 ** Math.max(attempts - 1, 0) * 30);
+  return new Date(now.getTime() + delaySeconds * 1000);
+}
 
 /**
  * Process all pending webhook deliveries.
@@ -13,11 +18,17 @@ const POLL_INTERVAL_MS = 5000;
  */
 export async function processWebhookDeliveries(): Promise<number> {
   const db = await getDb();
+  const now = new Date();
   // Fetch pending deliveries
   const pending = await db
     .select()
     .from(webhookDeliveries)
-    .where(eq(webhookDeliveries.status, 'pending'))
+    .where(
+      and(
+        eq(webhookDeliveries.status, 'pending'),
+        or(isNull(webhookDeliveries.nextAttemptAt), lte(webhookDeliveries.nextAttemptAt, now)),
+      ),
+    )
     .limit(50);
 
   let processed = 0;
@@ -27,7 +38,7 @@ export async function processWebhookDeliveries(): Promise<number> {
     if (delivery.attempts >= MAX_ATTEMPTS) {
       await db
         .update(webhookDeliveries)
-        .set({ status: 'dead_lettered', lastAttemptAt: new Date() })
+        .set({ status: 'dead_lettered', lastAttemptAt: new Date(), nextAttemptAt: null })
         .where(eq(webhookDeliveries.id, delivery.id));
       continue;
     }
@@ -42,25 +53,28 @@ export async function processWebhookDeliveries(): Promise<number> {
     if (!endpoint || !endpoint.enabled) {
       await db
         .update(webhookDeliveries)
-        .set({ status: 'dead_lettered', lastAttemptAt: new Date() })
+        .set({ status: 'dead_lettered', lastAttemptAt: new Date(), nextAttemptAt: null })
         .where(eq(webhookDeliveries.id, delivery.id));
       continue;
     }
 
     try {
-      // Sign payload with HMAC-SHA256
       const payloadStr = JSON.stringify(delivery.payload);
-      const signature = crypto
-        .createHmac('sha256', endpoint.secret)
-        .update(payloadStr)
-        .digest('hex');
+      const timestamp = Math.floor(Date.now() / 1000).toString();
+      const signature = signWebhookPayload({
+        secret: endpoint.secret,
+        timestamp,
+        deliveryId: delivery.id,
+        body: payloadStr,
+      });
 
       // Deliver with 10s timeout
       const response = await fetch(endpoint.url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Apex-Signature': `sha256=${signature}`,
+          'X-Apex-Signature': signature,
+          'X-Apex-Timestamp': timestamp,
           'X-Apex-Event-Type': (delivery.payload as any)?.type || 'unknown',
           'X-Apex-Delivery-Id': delivery.id,
         },
@@ -75,6 +89,9 @@ export async function processWebhookDeliveries(): Promise<number> {
             status: 'delivered',
             attempts: delivery.attempts + 1,
             lastAttemptAt: new Date(),
+            deliveredAt: new Date(),
+            nextAttemptAt: null,
+            lastError: null,
           })
           .where(eq(webhookDeliveries.id, delivery.id));
         processed++;
@@ -84,12 +101,14 @@ export async function processWebhookDeliveries(): Promise<number> {
     } catch (error) {
       const newAttempts = delivery.attempts + 1;
       const isDead = newAttempts >= MAX_ATTEMPTS;
+      const attemptAt = new Date();
       await db
         .update(webhookDeliveries)
         .set({
           attempts: newAttempts,
           status: isDead ? 'dead_lettered' : 'pending',
-          lastAttemptAt: new Date(),
+          lastAttemptAt: attemptAt,
+          nextAttemptAt: isDead ? null : calculateNextAttemptAt(newAttempts, attemptAt),
           lastError: error instanceof Error ? error.message : 'Unknown error',
         })
         .where(eq(webhookDeliveries.id, delivery.id));

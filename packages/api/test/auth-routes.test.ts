@@ -5,6 +5,7 @@ import { apiKeys, organizations } from '@nibblelayer/apex-persistence/db';
 import { authRoutes } from '../src/routes/auth.js';
 import { setDbResolver, resetDbResolver } from '../src/db/resolver.js';
 import { createId } from '../src/utils/id.js';
+import { hashApiKey } from '../src/crypto.js';
 import { testDb } from './setup.js';
 
 beforeAll(() => {
@@ -28,7 +29,7 @@ async function createTestOrgAndKey(label?: string, revoked = false) {
 
   const keyId = createId();
   const rawKey = `apex_${crypto.randomBytes(32).toString('hex')}`;
-  const keyHash = crypto.createHash('sha256').update(rawKey).digest('hex');
+  const keyHash = await hashApiKey(rawKey);
 
   await testDb.insert(apiKeys).values({
     id: keyId,

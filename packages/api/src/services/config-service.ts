@@ -7,6 +7,7 @@ import {
   priceRules,
   discoveryMetadata,
   serviceManifests,
+  serviceDomains,
 } from '@nibblelayer/apex-persistence/db';
 import { buildManifest, computeChecksum, hasManifestChanged } from '@nibblelayer/apex-control-plane-core';
 import type { ApexManifest } from '@nibblelayer/apex-contracts';
@@ -49,6 +50,7 @@ export function planManifestMutation(input: {
   environment: ManifestEnvironmentState;
   wallet: ManifestWalletState;
   routeEntries: Parameters<typeof buildManifest>[0]['routes'];
+  verifiedDomains?: string[];
   latestManifest?: PersistedManifestState;
 }): PlannedManifestMutation {
   const manifest = buildManifest({
@@ -64,6 +66,7 @@ export function planManifestMutation(input: {
       network: input.wallet.network,
     },
     routes: input.routeEntries,
+    verifiedDomains: input.verifiedDomains ?? [],
     eventsEndpoint: '/events',
     idempotencyEnabled: true,
     refreshIntervalMs: 30000,
@@ -146,11 +149,17 @@ export async function generateManifest(
     throw new Error(`No active wallet destination for service ${serviceId} environment ${environmentMode}`);
   }
 
-  // 4. Get enabled routes for this service
+  // 4. Get enabled, approved routes for this service
   const serviceRoutes = await db
     .select()
     .from(routes)
-    .where(and(eq(routes.serviceId, serviceId), eq(routes.enabled, true)));
+    .where(
+      and(
+        eq(routes.serviceId, serviceId),
+        eq(routes.enabled, true),
+        eq(routes.publicationStatus, 'published'),
+      ),
+    );
 
   // 5. For each route, get price rules and discovery metadata
   const routeEntries = [];
@@ -170,6 +179,7 @@ export async function generateManifest(
 
     routeEntries.push({
       route: {
+        id: route.id,
         method: route.method,
         path: route.path,
         description: route.description,
@@ -196,6 +206,11 @@ export async function generateManifest(
   }
 
   // 6. Get latest manifest version
+  const verifiedDomainRows = await db
+    .select({ domain: serviceDomains.domain })
+    .from(serviceDomains)
+    .where(and(eq(serviceDomains.serviceId, serviceId), eq(serviceDomains.status, 'verified')));
+
   const [latestManifest] = await db
     .select()
     .from(serviceManifests)
@@ -222,6 +237,7 @@ export async function generateManifest(
       network: wallet.network,
     },
     routeEntries,
+    verifiedDomains: verifiedDomainRows.map((row) => row.domain),
     latestManifest: latestManifest
       ? {
           version: latestManifest.version,

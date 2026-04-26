@@ -14,7 +14,7 @@ export const paymentEventPayloadSchema = z.object({
   routeId: z.string().min(1),
   type: paymentEventTypeSchema,
   requestId: z.string().min(1),
-  paymentIdentifier: z.string().optional(),
+  paymentIdentifier: z.string().min(1),
   buyerAddress: z.string().optional(),
   amount: z.string().optional(),
   token: z.string().optional(),

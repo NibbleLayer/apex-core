@@ -4,6 +4,7 @@ import { ManifestManager } from './manifest.js';
 import { createMiddlewareFromManifest } from './middleware.js';
 import { applyIdempotency } from './idempotency.js';
 import { SDKEventEmitter } from './events.js';
+import { RouteRegistrar } from './route-registration.js';
 
 interface SDKListeners {
   [event: string]: Set<(...args: any[]) => void>;
@@ -25,10 +26,13 @@ interface SDKListeners {
  * ```
  */
 export function createApexClient(config: ApexClientConfig): ApexClient {
+  const routeRegistration = config.routeRegistration ?? (config.apiKey.startsWith('apx_sdk_') ? 'observe' : 'off');
   const fullConfig = {
     refreshIntervalMs: 60000,
     enableIdempotency: true,
     eventDelivery: 'fire-and-forget' as const,
+    routeHeartbeatIntervalMs: 60000,
+    routeRegistration,
     ...config,
   };
 
@@ -40,9 +44,17 @@ export function createApexClient(config: ApexClientConfig): ApexClient {
     apiKey: fullConfig.apiKey,
     serviceId: fullConfig.serviceId,
   });
+  const routeRegistrar = fullConfig.routeRegistration === 'observe'
+    ? new RouteRegistrar({
+        apexUrl: fullConfig.apexUrl,
+        apiKey: fullConfig.apiKey,
+        heartbeatIntervalMs: fullConfig.routeHeartbeatIntervalMs,
+      })
+    : null;
 
   // Forward manifest manager events to client listeners
   manifestManager.on('manifest.refreshed', (manifest: ApexManifest) => {
+    eventEmitter.setServiceId(manifest.serviceId);
     eventEmitter.setEventsEndpoint(manifest.eventsEndpoint);
     emit('manifest.refreshed', manifest);
   });
@@ -75,9 +87,11 @@ export function createApexClient(config: ApexClientConfig): ApexClient {
     if (!initPromise) {
       initPromise = (async () => {
         const manifest = await manifestManager.fetchManifest();
+        eventEmitter.setServiceId(manifest.serviceId);
         eventEmitter.setEventsEndpoint(manifest.eventsEndpoint);
         currentMiddleware = await buildMiddleware(manifest);
         manifestManager.startAutoRefresh();
+        routeRegistrar?.start();
 
         // Rebuild middleware on manifest change
         manifestManager.on('manifest.refreshed', async (newManifest: ApexManifest) => {
@@ -92,6 +106,7 @@ export function createApexClient(config: ApexClientConfig): ApexClient {
     async protect() {
       await ensureInitialized();
       return async (c, next) => {
+        routeRegistrar?.observe(c.req.method, c.req.path);
         if (currentMiddleware) {
           return currentMiddleware(c, next);
         }
@@ -114,6 +129,7 @@ export function createApexClient(config: ApexClientConfig): ApexClient {
 
     close() {
       manifestManager.stopAutoRefresh();
+      routeRegistrar?.stop();
       for (const key of Object.keys(listeners)) {
         listeners[key].clear();
       }

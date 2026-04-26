@@ -1,7 +1,8 @@
 import crypto from 'node:crypto';
-import { organizations, apiKeys, services, environments, walletDestinations, routes, priceRules } from '@nibblelayer/apex-persistence/db';
+import { organizations, apiKeys, services, environments, walletDestinations, routes, priceRules, sdkTokens } from '@nibblelayer/apex-persistence/db';
 import { testDb } from './setup.js';
 import { createId } from '../src/utils/id.js';
+import { hashApiKey } from '../src/crypto.js';
 
 /**
  * Create a test organization and return its ID.
@@ -25,7 +26,7 @@ export async function createTestOrg() {
  */
 export async function createTestApiKey(orgId: string, label = 'Test Key') {
   const rawKey = `apex_${crypto.randomBytes(32).toString('hex')}`;
-  const keyHash = crypto.createHash('sha256').update(rawKey).digest('hex');
+  const keyHash = await hashApiKey(rawKey);
   const id = createId();
   const now = new Date();
   await testDb.insert(apiKeys).values({
@@ -38,6 +39,34 @@ export async function createTestApiKey(orgId: string, label = 'Test Key') {
     lastUsedAt: null,
   });
   return { rawKey, id };
+}
+
+export async function createTestSdkToken({
+  orgId,
+  serviceId,
+  environment = 'test',
+  scopes = ['manifest:read'],
+}: {
+  orgId: string;
+  serviceId: string;
+  environment?: 'test' | 'prod';
+  scopes?: string[];
+}) {
+  const rawToken = `apx_sdk_${crypto.randomBytes(32).toString('hex')}`;
+  const keyHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+  const id = createId();
+  await testDb.insert(sdkTokens).values({
+    id,
+    organizationId: orgId,
+    serviceId,
+    environmentMode: environment,
+    keyHash,
+    label: 'Test SDK token',
+    scopes,
+    revokedAt: null,
+    lastUsedAt: null,
+  });
+  return { rawToken, id };
 }
 
 /**

@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "description": "Defines transfer boundaries for apex-core artifacts",
+  "boundaries": {
+    "transferable": {
+      "public_packages": [
+        "@nibblelayer/apex-contracts",
+        "@nibblelayer/apex-control-plane-core",
+        "@nibblelayer/apex-hono"
+      ],
+      "documentation": ["README.md", "LICENSE", "packages/*/README.md"],
+      "configuration": ["package.json", "pnpm-workspace.yaml", "tsconfig.base.json", "turbo.json", ".npmrc", ".nvmrc"],
+      "docker": ["compose.yaml", "docker/*"],
+      "scripts": ["scripts/*"],
+      "ci": [".github/workflows/*"]
+    },
+    "restricted": {
+      "governance": [".aiwf/*", "governance/*", ".aiwf-governance/*"],
+      "runtime": [".opencode/*"],
+      "audit": [".aiwf/audit/*"],
+      "exceptions": [".aiwf/exceptions.json"],
+      "state": [".aiwf/state/*"]
+    },
+    "never_transfer": {
+      "secrets": [".env", ".env.local"],
+      "database": ["packages/core/drizzle/meta/*"],
+      "internal_state": [".aiwf/session/*", ".aiwf/state/orchestration.db"]
+    }
+  },
+  "rules": [
+    "Public packages MUST remain Apache-2.0 licensed",
+    "Governance artifacts MUST NOT be included in npm publishes",
+    "AIWF runtime state MUST NOT leave the development environment",
+    "Database snapshots and migration metadata are development-only"
+  ]
+}

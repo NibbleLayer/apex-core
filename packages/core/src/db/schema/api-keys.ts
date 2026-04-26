@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, varchar } from 'drizzle-orm/pg-core';
 import { organizations } from './organizations.js';
 
 export const apiKeys = pgTable('api_keys', {
@@ -9,6 +9,7 @@ export const apiKeys = pgTable('api_keys', {
   /** SHA-256 hash of the raw API key — the raw key is never stored */
   keyHash: text('key_hash').notNull().unique(),
   label: text('label'),
+  role: varchar('role', { length: 20 }).notNull().default('admin'),
   lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   revokedAt: timestamp('revoked_at', { withTimezone: true }),

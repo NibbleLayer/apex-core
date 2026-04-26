@@ -35,9 +35,10 @@ async function seedSettlements(serviceId: string, routeId: string) {
   });
 
   // Create settlements
+  const pendingId = createId();
   await testDb.insert(settlements).values([
     {
-      id: createId(),
+      id: pendingId,
       serviceId,
       routeId,
       paymentEventId: eventId,
@@ -60,7 +61,7 @@ async function seedSettlements(serviceId: string, routeId: string) {
     },
   ]);
 
-  return eventId;
+  return { eventId, pendingId };
 }
 
 describe('GET /services/:id/settlements', () => {
@@ -126,5 +127,47 @@ describe('GET /services/:id/settlements', () => {
     const res = await settlementRoutes.request('/services/fake/settlements');
 
     expect(res.status).toBe(401);
+  });
+});
+
+describe('PATCH /settlements/:id/status', () => {
+  it('confirms a pending settlement and stores the reference', async () => {
+    const { rawKey, serviceId } = await createTestOrgKeyAndService();
+    const routeId = await createTestRoute(serviceId);
+    const { pendingId } = await seedSettlements(serviceId, routeId);
+
+    const res = await settlementRoutes.request(`/settlements/${pendingId}/status`, {
+      method: 'PATCH',
+      headers: jsonAuthHeaders(rawKey),
+      body: JSON.stringify({ status: 'confirmed', settlementReference: '0xfinal' }),
+    });
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.status).toBe('confirmed');
+    expect(body.settlementReference).toBe('0xfinal');
+    expect(body.updatedAt).toBeDefined();
+  });
+
+  it('rejects terminal settlement transitions', async () => {
+    const { rawKey, serviceId } = await createTestOrgKeyAndService();
+    const routeId = await createTestRoute(serviceId);
+    const { pendingId } = await seedSettlements(serviceId, routeId);
+
+    await settlementRoutes.request(`/settlements/${pendingId}/status`, {
+      method: 'PATCH',
+      headers: jsonAuthHeaders(rawKey),
+      body: JSON.stringify({ status: 'confirmed' }),
+    });
+
+    const res = await settlementRoutes.request(`/settlements/${pendingId}/status`, {
+      method: 'PATCH',
+      headers: jsonAuthHeaders(rawKey),
+      body: JSON.stringify({ status: 'failed' }),
+    });
+
+    expect(res.status).toBe(409);
+    const body = await res.json();
+    expect(body.error).toContain('Invalid settlement status transition');
   });
 });

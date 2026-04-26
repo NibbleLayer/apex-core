@@ -4,6 +4,7 @@ import { planManifestMutation } from '../../src/services/config-service.js';
 const routeEntries = [
   {
     route: {
+      id: 'route_weather',
       method: 'GET' as const,
       path: '/weather',
       description: 'Weather data',
@@ -48,6 +49,10 @@ describe('planManifestMutation', () => {
     expect(result.isNew).toBe(true);
     expect(result.manifest.version).toBe(1);
     expect(result.checksum).toMatch(/^[a-f0-9]{64}$/);
+    expect(result.manifest.routes['GET /weather'].extensions?.apex).toEqual({
+      routeId: 'route_weather',
+      routeKey: 'GET /weather',
+    });
   });
 
   it('reuses the stored manifest when the content checksum is unchanged', () => {

@@ -1,10 +1,11 @@
 import { Hono } from 'hono';
 import { eq, and } from 'drizzle-orm';
-import { services, environments, routes } from '@nibblelayer/apex-persistence/db';
+import { services, environments, routes, sdkTokens } from '@nibblelayer/apex-persistence/db';
 import { createServiceSchema } from '@nibblelayer/apex-contracts/schemas';
 import { authMiddleware } from '../middleware/auth.js';
 import { getDb } from '../db/resolver.js';
 import { createId } from '../utils/id.js';
+import { generateSdkToken } from '../services/sdk-token-service.js';
 
 const service = new Hono();
 
@@ -59,6 +60,79 @@ service.post('/', async (c) => {
     }
     throw err;
   }
+});
+
+// POST /:serviceId/sdk-tokens - Create a scoped SDK token for manifest/event SDK use
+service.post('/:serviceId/sdk-tokens', async (c) => {
+  const db = await getDb();
+  const orgId = c.get('organizationId');
+  const serviceId = c.req.param('serviceId');
+  const body = await c.req.json().catch(() => ({}));
+
+  const [found] = await db
+    .select({ id: services.id })
+    .from(services)
+    .where(and(eq(services.id, serviceId), eq(services.organizationId, orgId)))
+    .limit(1);
+
+  if (!found) {
+    return c.json({ error: 'Service not found' }, 404);
+  }
+
+  const environment = body.environment;
+  if (environment !== 'test' && environment !== 'prod') {
+    return c.json({ error: 'Body field "environment" must be "test" or "prod"' }, 400);
+  }
+
+  const scopes = body.scopes ?? ['manifest:read', 'events:write'];
+  if (
+    !Array.isArray(scopes) ||
+    scopes.length === 0 ||
+    scopes.some((scope) => typeof scope !== 'string' || scope.trim().length === 0)
+  ) {
+    return c.json({ error: 'Body field "scopes" must be a non-empty string array' }, 400);
+  }
+
+  if (!scopes.includes('manifest:read')) {
+    return c.json({ error: 'SDK token scopes must include "manifest:read"' }, 400);
+  }
+
+  const expiresAt = body.expiresAt === undefined || body.expiresAt === null ? null : new Date(body.expiresAt);
+  if (expiresAt && Number.isNaN(expiresAt.getTime())) {
+    return c.json({ error: 'Body field "expiresAt" must be a valid ISO datetime' }, 400);
+  }
+
+  const { rawToken, keyHash } = generateSdkToken();
+  const id = createId();
+  const [created] = await db
+    .insert(sdkTokens)
+    .values({
+      id,
+      organizationId: orgId,
+      serviceId,
+      environmentMode: environment,
+      keyHash,
+      label: typeof body.label === 'string' ? body.label : null,
+      scopes,
+      expiresAt,
+    })
+    .returning({
+      id: sdkTokens.id,
+      serviceId: sdkTokens.serviceId,
+      environmentMode: sdkTokens.environmentMode,
+      scopes: sdkTokens.scopes,
+    });
+
+  return c.json(
+    {
+      id: created.id,
+      token: rawToken,
+      serviceId: created.serviceId,
+      environment: created.environmentMode,
+      scopes: created.scopes,
+    },
+    201,
+  );
 });
 
 // GET /:id - Get service with environment and route count

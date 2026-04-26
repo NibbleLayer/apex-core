@@ -19,6 +19,7 @@ function makeValidManifest(overrides: Record<string, unknown> = {}): Record<stri
       token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
       network: 'eip155:84532',
     },
+    verifiedDomains: [],
     routes: {
       'GET /api/data': {
         accepts: [
@@ -166,6 +167,7 @@ describe('SDK Regression', () => {
           routeId: 'route_456',
           type,
           requestId: `req_${type.replace('.', '_')}`,
+          paymentIdentifier: `pay_${type.replace('.', '_')}`,
           timestamp: new Date().toISOString(),
         };
         const result = paymentEventPayloadSchema.safeParse(payload);
@@ -197,6 +199,7 @@ describe('SDK Regression', () => {
         routeId: 'route_456',
         type: 'payment.failed',
         requestId: 'req_fail_001',
+        paymentIdentifier: 'pay_fail_001',
         error: 'Insufficient funds',
         timestamp: new Date().toISOString(),
       };
@@ -231,6 +234,7 @@ describe('SDK Regression', () => {
         routeId: 'route_456',
         type: 'payment.required',
         requestId: 'req_bad_ts',
+        paymentIdentifier: 'pay_bad_ts',
         timestamp: 'not-a-date',
       };
       const result = paymentEventPayloadSchema.safeParse(payload);

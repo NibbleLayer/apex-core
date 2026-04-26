@@ -7,7 +7,7 @@ import { paymentEventPayloadSchema } from '@nibblelayer/apex-contracts/schemas';
 export interface EventEmitterConfig {
   apexUrl: string;
   apiKey: string;
-  serviceId: string;
+  serviceId?: string;
   eventsEndpoint?: string;
   maxRetries?: number;
 }
@@ -15,6 +15,67 @@ export interface EventEmitterConfig {
 interface QueuedEvent {
   payload: PaymentEventPayload;
   retries: number;
+}
+
+export function buildPaymentEventPayload(input: {
+  serviceId: string;
+  type: string;
+  data: Record<string, unknown>;
+  now?: Date;
+}): PaymentEventPayload | null {
+  const requirements = asRecord(input.data.requirements);
+  const extensions = asRecord(requirements?.extensions);
+  const apexExtensions = asRecord(extensions?.apex);
+  const firstAccept = firstRecord(requirements?.accepts);
+  const paymentPayload = asRecord(input.data.paymentPayload);
+  const paymentPayloadBody = asRecord(paymentPayload?.payload);
+  const authorization = asRecord(paymentPayloadBody?.authorization);
+  const resultPayload = asRecord(input.data.result);
+
+  const routeId = firstString(input.data.routeId, apexExtensions?.routeId);
+  const paymentIdentifier = firstString(
+    input.data.paymentIdentifier,
+    paymentPayload?.paymentIdentifier,
+    paymentPayload?.nonce,
+    authorization?.nonce,
+  );
+  const requestId = firstString(input.data.requestId, paymentIdentifier);
+
+  const payload: PaymentEventPayload = {
+    serviceId: input.serviceId,
+    routeId: routeId as string,
+    type: input.type as PaymentEventType,
+    requestId: requestId as string,
+    paymentIdentifier: paymentIdentifier ?? '',
+    buyerAddress: firstString(
+      input.data.buyerAddress,
+      paymentPayload?.buyerAddress,
+      authorization?.from,
+    ),
+    amount: firstString(
+      input.data.amount,
+      firstAccept?.price,
+      firstAccept?.maxAmountRequired,
+    ),
+    token: firstString(input.data.token, firstAccept?.asset, firstAccept?.token),
+    network: firstString(input.data.network, firstAccept?.network),
+    settlementReference: firstString(
+      input.data.settlementReference,
+      resultPayload?.transaction,
+      resultPayload?.txHash,
+      resultPayload?.settlementReference,
+    ),
+    error: normalizeError(input.data.error),
+    timestamp: (input.now ?? new Date()).toISOString(),
+  };
+
+  const validation = paymentEventPayloadSchema.safeParse(payload);
+  if (!validation.success) {
+    console.error('Invalid event payload:', validation.error.issues);
+    return null;
+  }
+
+  return validation.data;
 }
 
 export class SDKEventEmitter {
@@ -32,34 +93,30 @@ export class SDKEventEmitter {
     this.eventsUrl = resolveEventsUrl(this.config.apexUrl, eventsEndpoint);
   }
 
+  setServiceId(serviceId: string): void {
+    this.config.serviceId = serviceId;
+  }
+
   /**
    * Emit an event to the Apex control plane.
    * Fire-and-forget: does not block the payment flow.
    */
   emit(type: string, data: Record<string, unknown>): void {
-    const payload: PaymentEventPayload = {
-      serviceId: this.config.serviceId,
-      routeId: data.routeId as string,
-      type: type as PaymentEventType,
-      requestId: data.requestId as string,
-      paymentIdentifier: data.paymentIdentifier as string | undefined,
-      buyerAddress: data.buyerAddress as string | undefined,
-      amount: data.amount as string | undefined,
-      token: data.token as string | undefined,
-      network: data.network as string | undefined,
-      settlementReference: data.settlementReference as string | undefined,
-      error: data.error as string | undefined,
-      timestamp: new Date().toISOString(),
-    };
-
-    // Validate payload against schema
-    const result = paymentEventPayloadSchema.safeParse(payload);
-    if (!result.success) {
-      console.error('Invalid event payload:', result.error.issues);
+    if (!this.config.serviceId) {
+      console.error('Cannot emit Apex payment event before manifest serviceId is known:', type);
       return;
     }
 
-    this.queue.push({ payload: result.data, retries: 0 });
+    const payload = buildPaymentEventPayload({
+      serviceId: this.config.serviceId,
+      type,
+      data,
+    });
+    if (!payload) {
+      return;
+    }
+
+    this.queue.push({ payload, retries: 0 });
     this.processQueue().catch(() => {
       /* errors logged internally */
     });
@@ -115,4 +172,38 @@ export class SDKEventEmitter {
 
 function resolveEventsUrl(apexUrl: string, eventsEndpoint = '/events'): string {
   return new URL(eventsEndpoint, apexUrl).toString();
+}
+
+function asRecord(value: unknown): Record<string, unknown> | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return undefined;
+  }
+
+  return value as Record<string, unknown>;
+}
+
+function firstRecord(value: unknown): Record<string, unknown> | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  return asRecord(value[0]);
+}
+
+function firstString(...values: unknown[]): string | undefined {
+  for (const value of values) {
+    if (typeof value === 'string' && value.length > 0) {
+      return value;
+    }
+  }
+
+  return undefined;
+}
+
+function normalizeError(value: unknown): string | undefined {
+  if (value instanceof Error) {
+    return value.message;
+  }
+
+  return firstString(value);
 }

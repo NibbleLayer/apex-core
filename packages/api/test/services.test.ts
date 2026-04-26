@@ -1,9 +1,11 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import crypto from 'node:crypto';
-import { apiKeys, organizations, services, environments } from '@nibblelayer/apex-persistence/db';
+import { eq } from 'drizzle-orm';
+import { apiKeys, organizations, services, sdkTokens } from '@nibblelayer/apex-persistence/db';
 import { serviceRoutes } from '../src/routes/services.js';
 import { setDbResolver, resetDbResolver } from '../src/db/resolver.js';
 import { createId } from '../src/utils/id.js';
+import { hashApiKey } from '../src/crypto.js';
 import { testDb } from './setup.js';
 
 beforeAll(() => {
@@ -27,7 +29,7 @@ async function createTestOrgWithKey() {
 
   const keyId = createId();
   const rawKey = `apex_${crypto.randomBytes(32).toString('hex')}`;
-  const keyHash = crypto.createHash('sha256').update(rawKey).digest('hex');
+  const keyHash = await hashApiKey(rawKey);
 
   await testDb.insert(apiKeys).values({
     id: keyId,
@@ -128,6 +130,43 @@ describe('GET /services/:id', () => {
     });
 
     expect(res.status).toBe(404);
+  });
+});
+
+describe('POST /services/:serviceId/sdk-tokens', () => {
+  it('creates a scoped SDK token and stores only its hash', async () => {
+    const { orgId, rawKey } = await createTestOrgWithKey();
+    const serviceId = createId();
+    const now = new Date();
+
+    await testDb.insert(services).values({
+      id: serviceId,
+      organizationId: orgId,
+      name: 'SDK Token Service',
+      slug: `sdk-token-${serviceId.slice(0, 8)}`,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    const res = await serviceRoutes.request(`/${serviceId}/sdk-tokens`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${rawKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ environment: 'test', label: 'Local SDK' }),
+    });
+
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.token).toMatch(/^apx_sdk_/);
+    expect(body.serviceId).toBe(serviceId);
+    expect(body.environment).toBe('test');
+    expect(body.scopes).toEqual(['manifest:read', 'events:write']);
+
+    const [stored] = await testDb.select().from(sdkTokens).where(eq(sdkTokens.id, body.id));
+    expect(stored.keyHash).toMatch(/^[a-f0-9]{64}$/);
+    expect(stored.keyHash).not.toBe(body.token);
   });
 });
 

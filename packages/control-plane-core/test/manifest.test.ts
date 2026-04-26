@@ -15,7 +15,7 @@ const mockInput = {
   },
   routes: [
     {
-      route: { method: 'GET', path: '/api/weather', description: 'Weather data', enabled: true },
+      route: { id: 'route_weather', method: 'GET', path: '/api/weather', description: 'Weather data', enabled: true },
       priceRules: [
         { scheme: 'exact' as const, amount: '$0.01', token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', network: 'eip155:84532', active: true },
       ],
@@ -33,6 +33,7 @@ const mockInput = {
   idempotencyEnabled: true,
   refreshIntervalMs: 60000,
   currentVersion: 0,
+  verifiedDomains: ['weather.example.com'],
 };
 
 describe('buildManifest', () => {
@@ -42,6 +43,7 @@ describe('buildManifest', () => {
     expect(manifest.serviceId).toBe('svc_test123');
     expect(manifest.environment).toBe('test');
     expect(manifest.version).toBe(1);
+    expect(manifest.verifiedDomains).toEqual(['weather.example.com']);
     expect(manifest.routes['GET /api/weather']).toMatchObject({
       description: 'Weather data',
       accepts: [
@@ -59,6 +61,10 @@ describe('buildManifest', () => {
           category: 'weather',
           tags: ['forecast', 'real-time'],
         },
+        apex: {
+          routeId: 'route_weather',
+          routeKey: 'GET /api/weather',
+        },
       },
     });
   });
@@ -68,14 +74,14 @@ describe('buildManifest', () => {
       ...mockInput,
       routes: [
         {
-          route: { method: 'GET', path: '/disabled', description: null, enabled: false },
+          route: { id: 'route_disabled', method: 'GET', path: '/disabled', description: null, enabled: false },
           priceRules: [
             { scheme: 'exact' as const, amount: '$0.01', token: '0x833', network: 'eip155:84532', active: true },
           ],
           discovery: null,
         },
         {
-          route: { method: 'GET', path: '/inactive', description: null, enabled: true },
+          route: { id: 'route_inactive', method: 'GET', path: '/inactive', description: null, enabled: true },
           priceRules: [
             { scheme: 'exact' as const, amount: '$0.01', token: '0x833', network: 'eip155:84532', active: false },
           ],
@@ -92,7 +98,7 @@ describe('buildManifest', () => {
       ...mockInput,
       routes: [
         {
-          route: { method: 'GET', path: '/api/unpublished', description: null, enabled: true },
+          route: { id: 'route_unpublished', method: 'GET', path: '/api/unpublished', description: null, enabled: true },
           priceRules: [
             { scheme: 'exact' as const, amount: '$0.01', token: '0x833', network: 'eip155:84532', active: true },
           ],
@@ -110,6 +116,10 @@ describe('buildManifest', () => {
 
     expect(manifest.routes['GET /api/unpublished'].extensions?.bazaar).toBeUndefined();
     expect(manifest.routes['GET /api/unpublished'].extensions?.['payment-identifier']).toEqual({ required: false });
+    expect(manifest.routes['GET /api/unpublished'].extensions?.apex).toEqual({
+      routeId: 'route_unpublished',
+      routeKey: 'GET /api/unpublished',
+    });
   });
 });
 

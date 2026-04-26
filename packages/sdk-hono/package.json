@@ -1,6 +1,6 @@
 {
   "name": "@nibblelayer/apex-hono",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Public Hono SDK for Apex self-hosted payable route integration.",
   "license": "Apache-2.0",
   "type": "module",
@@ -16,7 +16,7 @@
   },
   "scripts": {
     "build": "tsup",
-    "test": "vitest run",
+    "test": "pnpm --filter @nibblelayer/apex-contracts build && vitest run",
     "test:watch": "vitest"
   },
   "keywords": ["apex", "x402", "hono", "middleware", "payments"],

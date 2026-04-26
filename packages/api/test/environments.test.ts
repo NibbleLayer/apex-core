@@ -4,6 +4,7 @@ import { apiKeys, organizations, services, environments } from '@nibblelayer/ape
 import { environmentRoutes } from '../src/routes/environments.js';
 import { setDbResolver, resetDbResolver } from '../src/db/resolver.js';
 import { createId } from '../src/utils/id.js';
+import { hashApiKey } from '../src/crypto.js';
 import { testDb } from './setup.js';
 
 beforeAll(() => {
@@ -27,7 +28,7 @@ async function createTestOrgKeyAndService() {
 
   const keyId = createId();
   const rawKey = `apex_${crypto.randomBytes(32).toString('hex')}`;
-  const keyHash = crypto.createHash('sha256').update(rawKey).digest('hex');
+  const keyHash = await hashApiKey(rawKey);
 
   await testDb.insert(apiKeys).values({
     id: keyId,

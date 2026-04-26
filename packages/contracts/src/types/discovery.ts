@@ -10,4 +10,8 @@ export interface DiscoveryMetadata {
   outputSchema: Record<string, unknown> | null;
   docsUrl: string | null;
   published: boolean;
+  reviewStatus: 'draft' | 'in_review' | 'published' | 'rejected';
+  indexingStatus: 'not_submitted' | 'queued' | 'indexed' | 'failed';
+  indexingError: string | null;
+  updatedAt: Date;
 }

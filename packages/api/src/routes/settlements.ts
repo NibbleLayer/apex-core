@@ -3,6 +3,7 @@ import { eq, and, desc, sql } from 'drizzle-orm';
 import { settlements, services } from '@nibblelayer/apex-persistence/db';
 import { authMiddleware } from '../middleware/auth.js';
 import { getDb } from '../db/resolver.js';
+import { assertSettlementTransition, type SettlementStatus } from '../services/settlement-service.js';
 
 const router = new Hono();
 
@@ -50,6 +51,56 @@ router.get('/services/:id/settlements', async (c) => {
     .where(and(...conditions));
 
   return c.json({ settlements: result, total: count });
+});
+
+// PATCH /settlements/:id/status - transition settlement status explicitly.
+router.patch('/settlements/:id/status', async (c) => {
+  const db = await getDb();
+  const settlementId = c.req.param('id');
+  const orgId = c.get('organizationId');
+  const body = await c.req.json();
+
+  if (!['pending', 'confirmed', 'failed'].includes(body.status)) {
+    return c.json({ error: 'status must be pending, confirmed, or failed' }, 400);
+  }
+
+  const [existing] = await db
+    .select({
+      id: settlements.id,
+      serviceId: settlements.serviceId,
+      status: settlements.status,
+      serviceOrgId: services.organizationId,
+    })
+    .from(settlements)
+    .innerJoin(services, eq(settlements.serviceId, services.id))
+    .where(eq(settlements.id, settlementId))
+    .limit(1);
+
+  if (!existing || existing.serviceOrgId !== orgId) {
+    return c.json({ error: 'Settlement not found' }, 404);
+  }
+
+  try {
+    assertSettlementTransition(existing.status as SettlementStatus, body.status as SettlementStatus);
+  } catch (error) {
+    return c.json({ error: error instanceof Error ? error.message : 'Invalid settlement transition' }, 409);
+  }
+
+  const updates: Record<string, unknown> = {
+    status: body.status,
+    updatedAt: new Date(),
+  };
+  if (body.settlementReference !== undefined) {
+    updates.settlementReference = body.settlementReference || null;
+  }
+
+  const [updated] = await db
+    .update(settlements)
+    .set(updates)
+    .where(eq(settlements.id, settlementId))
+    .returning();
+
+  return c.json(updated);
 });
 
 export const settlementRoutes = router;

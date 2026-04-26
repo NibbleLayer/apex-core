@@ -73,7 +73,7 @@ export function buildDiscoveryPayload(input: {
   docsUrl: string;
   inputSchema: string;
   outputSchema: string;
-  published: boolean;
+  reviewStatus: 'draft' | 'in_review' | 'published' | 'rejected';
 }) {
   return {
     discoverable: input.discoverable,
@@ -87,6 +87,6 @@ export function buildDiscoveryPayload(input: {
     docsUrl: input.docsUrl.trim() || undefined,
     inputSchema: parseSchema(input.inputSchema, 'input schema'),
     outputSchema: parseSchema(input.outputSchema, 'output schema'),
-    published: input.published,
+    reviewStatus: input.reviewStatus,
   };
 }

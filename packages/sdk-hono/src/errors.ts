@@ -8,6 +8,16 @@ export class ApexConnectionError extends Error {
   }
 }
 
+export class ApexMiddlewareInitializationError extends Error {
+  constructor(
+    message: string,
+    public readonly cause?: Error,
+  ) {
+    super(message);
+    this.name = 'ApexMiddlewareInitializationError';
+  }
+}
+
 export interface ZodIssueLike {
   readonly message: string;
   readonly path: readonly (string | number)[];

@@ -28,6 +28,12 @@ const manifestRouteAcceptsSchema = z.object({
 
 const manifestRouteExtensionsSchema = z.object({
   'payment-identifier': z.object({ required: z.boolean() }).optional(),
+  apex: z
+    .object({
+      routeId: z.string().min(1),
+      routeKey: z.string().min(1),
+    })
+    .optional(),
   bazaar: z
     .object({
       discoverable: z.boolean(),
@@ -59,9 +65,24 @@ export const apexManifestSchema = z.object({
   network: caip2Network,
   facilitatorUrl: z.string().url(),
   wallet: manifestWalletSchema,
+  verifiedDomains: z.array(z.string().min(1)),
   routes: z.record(manifestRouteSchema),
   eventsEndpoint: manifestEventsEndpointSchema,
   idempotencyEnabled: z.boolean(),
   refreshIntervalMs: z.number().int().positive(),
   checksum: z.string().min(1),
 });
+
+export const manifestSignatureSchema = z.object({
+  alg: z.literal('HS256'),
+  kid: z.string().min(1),
+  issuedAt: z.string().datetime(),
+  expiresAt: z.string().datetime().optional(),
+  payloadDigest: z.string().regex(/^[a-f0-9]{64}$/),
+  value: z.string().regex(/^[a-f0-9]{64}$/),
+}).strict();
+
+export const signedManifestEnvelopeSchema = z.object({
+  manifest: apexManifestSchema,
+  signature: manifestSignatureSchema,
+}).strict();

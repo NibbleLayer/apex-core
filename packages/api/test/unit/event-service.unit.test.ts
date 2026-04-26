@@ -10,6 +10,7 @@ const validPayload = {
   routeId: 'route_123',
   type: 'payment.settled' as const,
   requestId: 'req_123',
+  paymentIdentifier: 'pay_123',
   amount: '$0.01',
   token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
   network: 'eip155:84532',
@@ -53,7 +54,7 @@ describe('buildSettlementRecord', () => {
 
     expect(settlement.paymentEventId).toBe('evt_123');
     expect(settlement.amount).toBe('$0.01');
-    expect(settlement.status).toBe('confirmed');
+    expect(settlement.status).toBe('pending');
   });
 });
 

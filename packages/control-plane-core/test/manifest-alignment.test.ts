@@ -17,6 +17,7 @@ const manifestInput = {
   routes: [
     {
       route: {
+        id: 'route_weather',
         method: 'GET' as const,
         path: '/api/weather',
         description: 'Weather data',
@@ -51,5 +52,14 @@ describe('buildManifest alignment', () => {
     const manifest = buildManifest(manifestInput);
 
     expect(() => apexManifestSchema.parse(manifest)).not.toThrow();
+  });
+
+  it('includes stable Apex route identity in route extensions', () => {
+    const manifest = buildManifest(manifestInput);
+
+    expect(manifest.routes['GET /api/weather'].extensions?.apex).toEqual({
+      routeId: 'route_weather',
+      routeKey: 'GET /api/weather',
+    });
   });
 });
