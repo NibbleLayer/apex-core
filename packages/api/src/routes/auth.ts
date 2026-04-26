@@ -15,8 +15,9 @@ auth.post('/login', async (c) => {
   }
 
   const db = await getDb();
+  const prefix = body.api_key.slice(0, 8);
 
-  const allKeys = await db
+  const matchingKeys = await db
     .select({
       keyId: apiKeys.id,
       orgId: apiKeys.organizationId,
@@ -24,10 +25,11 @@ auth.post('/login', async (c) => {
       revokedAt: apiKeys.revokedAt,
       keyHash: apiKeys.keyHash,
     })
-    .from(apiKeys);
+    .from(apiKeys)
+    .where(eq(apiKeys.keyPrefix, prefix));
 
   let found = null;
-  for (const keyRow of allKeys) {
+  for (const keyRow of matchingKeys) {
     if (await verifyApiKey(body.api_key, keyRow.keyHash)) {
       found = keyRow;
       break;

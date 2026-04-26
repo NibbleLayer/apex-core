@@ -27,12 +27,14 @@ export async function createTestOrg() {
 export async function createTestApiKey(orgId: string, label = 'Test Key') {
   const rawKey = `apex_${crypto.randomBytes(32).toString('hex')}`;
   const keyHash = await hashApiKey(rawKey);
+  const keyPrefix = rawKey.slice(0, 8);
   const id = createId();
   const now = new Date();
   await testDb.insert(apiKeys).values({
     id,
     organizationId: orgId,
     keyHash,
+    keyPrefix,
     label,
     createdAt: now,
     revokedAt: null,

@@ -35,11 +35,13 @@ async function createTestOrgAndKey(label?: string, revoked = false) {
   const keyId = createId();
   const rawKey = `apex_${crypto.randomBytes(32).toString('hex')}`;
   const keyHash = await hashApiKey(rawKey);
+  const keyPrefix = rawKey.slice(0, 8);
 
   await testDb.insert(apiKeys).values({
     id: keyId,
     organizationId: orgId,
     keyHash,
+    keyPrefix,
     label: label ?? null,
     createdAt: now,
     revokedAt: revoked ? now : null,

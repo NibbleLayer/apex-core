@@ -516,6 +516,7 @@ describe('api_keys table', () => {
       id: keyId,
       organizationId: orgId,
       keyHash,
+      keyPrefix: keyHash.slice(0, 8),
       label: 'Production Key',
     });
 
@@ -532,6 +533,7 @@ describe('api_keys table', () => {
         id: testId('key'),
         organizationId: orgId,
         keyHash, // Same hash
+        keyPrefix: keyHash.slice(0, 8),
       }),
     ).rejects.toThrow();
 
@@ -618,6 +620,7 @@ describe('cascade delete', () => {
       id: keyId,
       organizationId: orgId,
       keyHash: `cascade_hash_${Date.now()}`,
+      keyPrefix: `cascade_`,
     });
 
     // Delete the organization — everything should cascade

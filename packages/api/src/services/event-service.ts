@@ -132,40 +132,43 @@ export async function ingestEvent(
     return { status: 202, body: { accepted: true } };
   }
 
-  // 3. Persist to payment_events table
   const id = createId();
-  await db.insert(paymentEvents).values({
-    id,
-    serviceId: payload.serviceId,
-    routeId: payload.routeId,
-    type: payload.type,
-    requestId: payload.requestId,
-    paymentIdentifier: payload.paymentIdentifier,
-    buyerAddress: payload.buyerAddress ?? null,
-    payload: rawPayload as Record<string, unknown>,
+
+  await db.transaction(async (tx) => {
+    // 3. Persist to payment_events table
+    await tx.insert(paymentEvents).values({
+      id,
+      serviceId: payload.serviceId,
+      routeId: payload.routeId,
+      type: payload.type,
+      requestId: payload.requestId,
+      paymentIdentifier: payload.paymentIdentifier,
+      buyerAddress: payload.buyerAddress ?? null,
+      payload: rawPayload as Record<string, unknown>,
+    });
+
+    // 4. If payment.settled, create settlement record
+    if (payload.type === 'payment.settled') {
+      await tx.insert(settlements).values(buildSettlementRecord(payload, id));
+    }
+
+    // 5. Enqueue webhook deliveries for all enabled endpoints on this service
+    const enabledEndpoints = await tx
+      .select()
+      .from(webhookEndpoints)
+      .where(
+        and(
+          eq(webhookEndpoints.serviceId, payload.serviceId),
+          eq(webhookEndpoints.enabled, true),
+        ),
+      );
+
+    if (enabledEndpoints.length > 0) {
+      await tx
+        .insert(webhookDeliveries)
+        .values(buildWebhookDeliveries(enabledEndpoints, id, rawPayload, payload.type));
+    }
   });
-
-  // 4. If payment.settled, create settlement record
-  if (payload.type === 'payment.settled') {
-    await db.insert(settlements).values(buildSettlementRecord(payload, id));
-  }
-
-  // 5. Enqueue webhook deliveries for all enabled endpoints on this service
-  const enabledEndpoints = await db
-    .select()
-    .from(webhookEndpoints)
-    .where(
-      and(
-        eq(webhookEndpoints.serviceId, payload.serviceId),
-        eq(webhookEndpoints.enabled, true),
-      ),
-    );
-
-  if (enabledEndpoints.length > 0) {
-    await db
-      .insert(webhookDeliveries)
-      .values(buildWebhookDeliveries(enabledEndpoints, id, rawPayload, payload.type));
-  }
 
   return { status: 202, body: { accepted: true } };
 }
