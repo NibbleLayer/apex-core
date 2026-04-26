@@ -1,9 +1,9 @@
 import { Hono } from 'hono';
-import crypto from 'node:crypto';
 import { eq } from 'drizzle-orm';
 import { apiKeys, organizations } from '@nibblelayer/apex-persistence/db';
 import { authMiddleware } from '../middleware/auth.js';
 import { getDb } from '../db/resolver.js';
+import { verifyApiKey } from '../crypto.js';
 
 const auth = new Hono();
 
@@ -14,19 +14,25 @@ auth.post('/login', async (c) => {
     return c.json({ error: 'API key is required' }, 400);
   }
 
-  const keyHash = crypto.createHash('sha256').update(body.api_key).digest('hex');
   const db = await getDb();
 
-  const [found] = await db
+  const allKeys = await db
     .select({
       keyId: apiKeys.id,
       orgId: apiKeys.organizationId,
       label: apiKeys.label,
       revokedAt: apiKeys.revokedAt,
+      keyHash: apiKeys.keyHash,
     })
-    .from(apiKeys)
-    .where(eq(apiKeys.keyHash, keyHash))
-    .limit(1);
+    .from(apiKeys);
+
+  let found = null;
+  for (const keyRow of allKeys) {
+    if (await verifyApiKey(body.api_key, keyRow.keyHash)) {
+      found = keyRow;
+      break;
+    }
+  }
 
   if (!found || found.revokedAt) {
     return c.json({ error: 'Invalid API key' }, 401);
@@ -39,7 +45,7 @@ auth.post('/login', async (c) => {
     .limit(1);
 
   return c.json({
-    organization_id: org.id,
+    organizationId: org.id,
     name: org.name,
     slug: org.slug,
     label: found.label,
@@ -62,7 +68,7 @@ auth.get('/me', authMiddleware, async (c) => {
   }
 
   return c.json({
-    organization_id: org.id,
+    organizationId: org.id,
     name: org.name,
     slug: org.slug,
     label: c.get('apiKeyLabel'),

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { api, setApiKey } from '../api/client';
 
 // ---- API client logic (pure function testing) ----
 // We mock fetch and localStorage to test the client module.
@@ -14,6 +15,7 @@ const localStorageMock = {
 
 beforeEach(() => {
   Object.keys(store).forEach((k) => delete store[k]);
+  localStorage.clear();
   vi.clearAllMocks();
 });
 
@@ -139,6 +141,61 @@ describe('API client - fetch behavior', () => {
       headers: { 'Content-Type': 'application/json' },
       body: '{"name":"Test","slug":"test"}',
     });
+
+    vi.restoreAllMocks();
+  });
+
+  it('creates scoped SDK tokens with the service endpoint and request body', async () => {
+    setApiKey('apex_admin_123');
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({
+        id: 'sdk_123',
+        token: 'apex_sdk_secret',
+        serviceId: 'svc_123',
+        environment: 'test',
+        scopes: ['manifest:read', 'events:write'],
+      }),
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    const response = await api.createSdkToken('svc_123', {
+      environment: 'test',
+      label: 'Dashboard SDK',
+      scopes: ['manifest:read', 'events:write'],
+    });
+
+    expect(mockFetch).toHaveBeenCalledWith('/api/services/svc_123/sdk-tokens', expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify({
+        environment: 'test',
+        label: 'Dashboard SDK',
+        scopes: ['manifest:read', 'events:write'],
+      }),
+    }));
+    expect(response).toMatchObject({
+      id: 'sdk_123',
+      token: 'apex_sdk_secret',
+      serviceId: 'svc_123',
+      environment: 'test',
+      scopes: ['manifest:read', 'events:write'],
+    });
+
+    vi.restoreAllMocks();
+  });
+
+  it('fetches recent webhook deliveries for visibility', async () => {
+    setApiKey('apex_admin_123');
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ deliveries: [{ id: 'del_123', status: 'pending' }] }),
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    const response = await api.listWebhookDeliveries('svc_123', 'pending');
+
+    expect(mockFetch).toHaveBeenCalledWith('/api/services/svc_123/webhook-deliveries?status=pending', expect.any(Object));
+    expect(response.deliveries[0].status).toBe('pending');
 
     vi.restoreAllMocks();
   });

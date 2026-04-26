@@ -123,7 +123,7 @@ export default function Settlements() {
               <For each={settlements()}>
                 {(s) => (
                   <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-3 text-sm text-gray-500">{formatDate(s.created_at)}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500">{formatDate(s.createdAt)}</td>
                     <td class="px-4 py-3 text-sm font-medium text-gray-900">{formatAmount(s.amount)}</td>
                     <td class="px-4 py-3 text-sm text-gray-600 font-mono truncate max-w-[200px]">{s.token || '—'}</td>
                     <td class="px-4 py-3 text-sm text-gray-600">{networkLabel(s.network)}</td>
@@ -133,7 +133,7 @@ export default function Settlements() {
                       </span>
                     </td>
                     <td class="px-4 py-3 text-sm text-gray-500 font-mono truncate max-w-[200px]">
-                      {s.settlement_reference || '—'}
+                      {s.settlementReference || '—'}
                     </td>
                   </tr>
                 )}

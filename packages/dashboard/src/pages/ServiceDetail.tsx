@@ -5,13 +5,15 @@ import type { Service, Environment, Route } from '../api/types';
 import { buildCreateEnvironmentPayload } from '../api/payloads';
 import { RouteTable } from '../components/RouteTable';
 import { WalletManager } from '../components/WalletManager';
+import { OnboardingWizard } from '../components/OnboardingWizard';
 import { PriceEditor } from '../components/PriceEditor';
 import { DiscoveryEditor } from '../components/DiscoveryEditor';
 import { WebhookManager } from '../components/WebhookManager';
+import { DomainManager } from '../components/DomainManager';
 import { networkLabel } from '../utils/network';
 import { formatDate } from '../utils/format';
 
-type Tab = 'routes' | 'environments' | 'wallets' | 'events' | 'settlements' | 'discovery' | 'webhooks' | 'manifest';
+type Tab = 'setup' | 'routes' | 'environments' | 'wallets' | 'domains' | 'events' | 'settlements' | 'discovery' | 'webhooks' | 'manifest';
 
 function CreateEnvironmentForm(props: { serviceId: string; onCreated: () => Promise<void> | void }) {
   const [mode, setMode] = createSignal<'test' | 'prod'>('test');
@@ -108,14 +110,16 @@ export default function ServiceDetail() {
   const [events, setEvents] = createSignal<any>(null);
   const [settlements, setSettlements] = createSignal<any>(null);
   const [manifest, setManifest] = createSignal<any>(null);
-  const [activeTab, setActiveTab] = createSignal<Tab>('routes');
+  const [activeTab, setActiveTab] = createSignal<Tab>('setup');
   const [loading, setLoading] = createSignal(true);
   const [error, setError] = createSignal('');
 
   const TABS: { key: Tab; label: string }[] = [
+    { key: 'setup', label: 'Setup' },
     { key: 'routes', label: 'Routes' },
     { key: 'environments', label: 'Environments' },
     { key: 'wallets', label: 'Wallets' },
+    { key: 'domains', label: 'Domains' },
     { key: 'events', label: 'Events' },
     { key: 'settlements', label: 'Settlements' },
     { key: 'discovery', label: 'Discovery' },
@@ -225,6 +229,10 @@ export default function ServiceDetail() {
         </div>
 
         {/* Tab content */}
+        <Show when={activeTab() === 'setup'}>
+          <OnboardingWizard serviceId={params.id} environments={environments()} onRefresh={loadAll} />
+        </Show>
+
         <Show when={activeTab() === 'routes'}>
           <RouteTable
             serviceId={params.id}
@@ -272,6 +280,10 @@ export default function ServiceDetail() {
           <WalletManager serviceId={params.id} environments={environments()} />
         </Show>
 
+        <Show when={activeTab() === 'domains'}>
+          <DomainManager serviceId={params.id} />
+        </Show>
+
         <Show when={activeTab() === 'events'}>
           <Show when={events()}>
             <div class="space-y-3">
@@ -282,9 +294,9 @@ export default function ServiceDetail() {
                        <span class={`text-xs px-2 py-1 rounded ${evt.type === 'payment.settled' ? 'bg-green-50 text-green-700' : evt.type === 'payment.failed' ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-700'}`}>
                          {evt.type}
                        </span>
-                       <p class="text-sm text-gray-600 mt-2">Request: {evt.request_id}</p>
-                     </div>
-                     <span class="text-xs text-gray-400">{formatDate(evt.created_at)}</span>
+                        <p class="text-sm text-gray-600 mt-2">Request: {evt.requestId}</p>
+                      </div>
+                      <span class="text-xs text-gray-400">{formatDate(evt.createdAt)}</span>
                    </div>
                  )}
                </For>
@@ -313,7 +325,7 @@ export default function ServiceDetail() {
                   <For each={settlements()?.settlements || []}>
                     {(s: any) => (
                       <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3 text-sm text-gray-500">{formatDate(s.created_at)}</td>
+                        <td class="px-4 py-3 text-sm text-gray-500">{formatDate(s.createdAt)}</td>
                         <td class="px-4 py-3 text-sm font-medium text-gray-900">{s.amount}</td>
                         <td class="px-4 py-3 text-sm text-gray-600 font-mono truncate max-w-[200px]">{s.token}</td>
                         <td class="px-4 py-3 text-sm text-gray-600">{networkLabel(s.network)}</td>
@@ -326,7 +338,7 @@ export default function ServiceDetail() {
                             {s.status}
                           </span>
                         </td>
-                        <td class="px-4 py-3 text-sm text-gray-500 font-mono truncate max-w-[200px]">{s.settlement_reference || '—'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-500 font-mono truncate max-w-[200px]">{s.settlementReference || '—'}</td>
                       </tr>
                     )}
                   </For>

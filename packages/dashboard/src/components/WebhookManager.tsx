@@ -7,6 +7,7 @@ interface WebhookManagerProps {
 
 export function WebhookManager(props: WebhookManagerProps) {
   const [webhooks, setWebhooks] = createSignal<any[]>([]);
+  const [deliveries, setDeliveries] = createSignal<any[]>([]);
   const [loading, setLoading] = createSignal(true);
   const [error, setError] = createSignal('');
   const [showCreate, setShowCreate] = createSignal(false);
@@ -17,8 +18,12 @@ export function WebhookManager(props: WebhookManagerProps) {
   async function loadWebhooks() {
     try {
       setLoading(true);
-      const data = await api.listWebhooks(props.serviceId);
+      const [data, deliveryData] = await Promise.all([
+        api.listWebhooks(props.serviceId),
+        api.listWebhookDeliveries(props.serviceId),
+      ]);
       setWebhooks(data);
+      setDeliveries(deliveryData.deliveries ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load webhooks');
     } finally {
@@ -139,7 +144,7 @@ export function WebhookManager(props: WebhookManagerProps) {
             <div class="bg-white p-4 rounded-lg shadow flex items-center justify-between">
               <div class="flex-1">
                 <p class="text-sm font-mono text-gray-900 truncate">{webhook.url}</p>
-                <p class="text-xs text-gray-400 mt-1">Created {new Date(webhook.created_at).toLocaleDateString()}</p>
+                <p class="text-xs text-gray-400 mt-1">Created {new Date(webhook.createdAt).toLocaleDateString()}</p>
               </div>
               <button
                 onClick={() => toggleWebhook(webhook)}
@@ -156,6 +161,41 @@ export function WebhookManager(props: WebhookManagerProps) {
             </div>
           )}
         </For>
+      </div>
+
+      <div class="mt-6 bg-white rounded-lg shadow p-4">
+        <h3 class="text-sm font-semibold text-gray-900 mb-3">Recent deliveries</h3>
+        <Show when={deliveries().length > 0} fallback={<p class="text-sm text-gray-500">No webhook deliveries yet.</p>}>
+          <div class="space-y-2">
+            <For each={deliveries()}>
+              {(delivery) => (
+                <div class="border rounded p-3 text-sm">
+                  <div class="flex items-center justify-between gap-3">
+                    <span class="font-mono text-xs text-gray-600 truncate">{delivery.endpointUrl}</span>
+                    <span class={`px-2 py-0.5 rounded text-xs font-medium ${
+                      delivery.status === 'delivered'
+                        ? 'bg-green-50 text-green-700'
+                        : delivery.status === 'dead_lettered' || delivery.status === 'failed'
+                          ? 'bg-red-50 text-red-700'
+                          : 'bg-yellow-50 text-yellow-700'
+                    }`}>
+                      {delivery.status}
+                    </span>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1">
+                    Attempts: {delivery.attempts} · Event: {delivery.eventId}
+                  </p>
+                  <Show when={delivery.lastError}>
+                    <p class="text-xs text-red-600 mt-1">{delivery.lastError}</p>
+                  </Show>
+                  <Show when={delivery.nextAttemptAt}>
+                    <p class="text-xs text-gray-500 mt-1">Next retry: {new Date(delivery.nextAttemptAt).toLocaleString()}</p>
+                  </Show>
+                </div>
+              )}
+            </For>
+          </div>
+        </Show>
       </div>
     </div>
   );

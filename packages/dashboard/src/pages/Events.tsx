@@ -115,21 +115,21 @@ export default function Events() {
           {(evt) => (
             <div class="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow">
               <div class="flex items-start justify-between">
-                <div class="flex items-center gap-3">
-                  <span class={`text-xs px-2 py-1 rounded font-medium ${eventTypeColor(evt.type)}`}>
-                    {evt.type}
-                  </span>
-                  <div>
-                    <p class="text-sm text-gray-900 font-mono">{evt.request_id}</p>
-                    <Show when={evt.payment_identifier}>
-                      <p class="text-xs text-gray-500 font-mono">{evt.payment_identifier}</p>
-                    </Show>
+                  <div class="flex items-center gap-3">
+                    <span class={`text-xs px-2 py-1 rounded font-medium ${eventTypeColor(evt.type)}`}>
+                      {evt.type}
+                    </span>
+                    <div>
+                      <p class="text-sm text-gray-900 font-mono">{evt.requestId}</p>
+                      <Show when={evt.paymentIdentifier}>
+                        <p class="text-xs text-gray-500 font-mono">{evt.paymentIdentifier}</p>
+                      </Show>
+                    </div>
                   </div>
-                </div>
-                <span class="text-xs text-gray-400">{formatDate(evt.created_at)}</span>
+                  <span class="text-xs text-gray-400">{formatDate(evt.createdAt)}</span>
               </div>
-              <Show when={evt.buyer_address}>
-                <p class="text-xs text-gray-400 mt-2 font-mono">From: {evt.buyer_address}</p>
+              <Show when={evt.buyerAddress}>
+                <p class="text-xs text-gray-400 mt-2 font-mono">From: {evt.buyerAddress}</p>
               </Show>
               <Show when={evt.payload}>
                 <details class="mt-2">

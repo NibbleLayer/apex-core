@@ -3,6 +3,8 @@ import { api } from '../api/client';
 import type { Route } from '../api/types';
 import { PriceEditor } from './PriceEditor';
 
+const SDK_ROUTE_STALE_THRESHOLD_MS = 5 * 60 * 1000;
+
 interface RouteTableProps {
   serviceId: string;
   routes: Route[];
@@ -24,6 +26,49 @@ export function RouteTable(props: RouteTableProps) {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update route');
     }
+  }
+
+  async function approveRoute(route: Route) {
+    try {
+      await api.updateRoute(route.id, { publicationStatus: 'published', enabled: true });
+      props.onRefresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to approve route');
+    }
+  }
+
+  function routePublicationStatus(route: Route) {
+    return route.publicationStatus ?? 'published';
+  }
+
+  function routeSource(route: Route) {
+    return route.source ?? 'dashboard';
+  }
+
+  function routeLastSeenAt(route: Route) {
+    return route.lastSeenAt ?? null;
+  }
+
+  function isSdkRouteStale(route: Route) {
+    if (routeSource(route) !== 'sdk') return false;
+
+    const lastSeenAt = routeLastSeenAt(route);
+    if (!lastSeenAt) return true;
+
+    const lastSeenTime = new Date(lastSeenAt).getTime();
+    if (Number.isNaN(lastSeenTime)) return true;
+
+    return Date.now() - lastSeenTime > SDK_ROUTE_STALE_THRESHOLD_MS;
+  }
+
+  function formatLastSeen(route: Route) {
+    const lastSeenAt = routeLastSeenAt(route);
+    if (!lastSeenAt) return null;
+
+    const parsed = new Date(lastSeenAt);
+    if (Number.isNaN(parsed.getTime())) return null;
+
+    return parsed.toLocaleString();
   }
 
   async function createRoute(e: Event) {
@@ -133,6 +178,26 @@ export function RouteTable(props: RouteTableProps) {
                   <Show when={route.description}>
                     <span class="text-sm text-gray-500">— {route.description}</span>
                   </Show>
+                  <span class={`text-xs px-2 py-1 rounded ${
+                    routePublicationStatus(route) === 'draft'
+                      ? 'bg-amber-50 text-amber-700'
+                      : 'bg-green-50 text-green-700'
+                  }`}>
+                    {routePublicationStatus(route)}
+                  </span>
+                  <span class={`text-xs px-2 py-1 rounded ${
+                    routeSource(route) === 'sdk'
+                      ? 'bg-purple-50 text-purple-700'
+                      : 'bg-gray-50 text-gray-700'
+                  }`}>
+                    {routeSource(route)}
+                  </span>
+                  <Show when={routeSource(route) === 'sdk' && formatLastSeen(route)}>
+                    <span class="text-xs text-gray-500">Last seen {formatLastSeen(route)}</span>
+                  </Show>
+                  <Show when={isSdkRouteStale(route)}>
+                    <span class="text-xs px-2 py-1 rounded bg-red-50 text-red-700">stale</span>
+                  </Show>
                 </div>
                 <div class="flex items-center gap-3">
                   <Show when={route.pricing && route.pricing.length > 0}>
@@ -144,6 +209,14 @@ export function RouteTable(props: RouteTableProps) {
                   >
                     {expandedRoute() === route.id ? 'Collapse' : 'Pricing'}
                   </button>
+                  <Show when={routePublicationStatus(route) === 'draft'}>
+                    <button
+                      onClick={() => approveRoute(route)}
+                      class="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
+                    >
+                      Approve
+                    </button>
+                  </Show>
                   <button
                     onClick={() => toggleRoute(route)}
                     class={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
