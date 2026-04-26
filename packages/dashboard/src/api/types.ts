@@ -35,6 +35,10 @@ export interface Route {
   path: string;
   description: string | null;
   enabled: boolean;
+  source?: 'dashboard' | 'sdk';
+  publicationStatus?: 'draft' | 'published';
+  lastSeenAt?: string | null;
+  updatedAt?: string;
   pricing?: PriceRule[];
   discovery?: DiscoveryMetadata;
 }
@@ -80,6 +84,43 @@ export interface CreateWalletRequest {
   label?: string;
 }
 
+export interface CreateSdkTokenRequest {
+  environment: 'test' | 'prod';
+  label?: string;
+  scopes?: string[];
+  expiresAt?: string;
+}
+
+export interface ServiceDomain {
+  id: string;
+  organizationId: string;
+  serviceId: string;
+  domain: string;
+  verificationToken: string;
+  verificationMethod: 'dns_txt';
+  status: 'pending' | 'verified' | 'failed';
+  dnsRecordName: string;
+  dnsRecordValue: string;
+  verifiedAt: string | null;
+  lastCheckedAt: string | null;
+  failureReason: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateServiceDomainRequest {
+  domain: string;
+}
+
+export interface SdkTokenCreateResponse {
+  id: string;
+  token: string;
+  serviceId?: string;
+  environment: 'test' | 'prod';
+  scopes: string[];
+  expiresAt?: string | null;
+}
+
 export interface CreatePriceRequest {
   scheme: 'exact';
   amount: string;
@@ -97,6 +138,9 @@ export interface CreateDiscoveryRequest {
   outputSchema?: Record<string, unknown>;
   docsUrl?: string;
   published?: boolean;
+  reviewStatus?: 'draft' | 'in_review' | 'published' | 'rejected';
+  indexingStatus?: 'not_submitted' | 'queued' | 'indexed' | 'failed';
+  indexingError?: string | null;
 }
 
 export interface PaymentEvent {
@@ -121,6 +165,24 @@ export interface Settlement {
   settlementReference: string | null;
   status: 'pending' | 'confirmed' | 'failed';
   createdAt: string;
+  updatedAt?: string;
+}
+
+export interface WebhookDelivery {
+  id: string;
+  endpointUrl: string;
+  status: 'pending' | 'delivered' | 'failed' | 'dead_lettered';
+  attempts: number;
+  lastAttemptAt: string | null;
+  nextAttemptAt: string | null;
+  deliveredAt: string | null;
+  lastError: string | null;
+  eventId: string;
+  createdAt: string;
+}
+
+export interface WebhookDeliveriesResponse {
+  deliveries: WebhookDelivery[];
 }
 
 export interface DiscoveryMetadata {
@@ -135,6 +197,40 @@ export interface DiscoveryMetadata {
   outputSchema: Record<string, unknown> | null;
   docsUrl: string | null;
   published: boolean;
+  reviewStatus: 'draft' | 'in_review' | 'published' | 'rejected';
+  indexingStatus: 'not_submitted' | 'queued' | 'indexed' | 'failed';
+  indexingError: string | null;
+  updatedAt?: string;
+}
+
+export interface DiscoveryQualityCheck {
+  level: 'error' | 'warning';
+  message: string;
+}
+
+export interface DiscoveryPreviewResponse {
+  preview: {
+    method: string;
+    path: string;
+    title: string;
+    summary: string;
+    category: string | null;
+    tags: string[];
+    mimeType: string | null;
+    docsUrl: string | null;
+    schemas: {
+      input: Record<string, unknown> | null;
+      output: Record<string, unknown> | null;
+    };
+    status: {
+      reviewStatus: 'draft' | 'in_review' | 'published' | 'rejected';
+      indexingStatus: 'not_submitted' | 'queued' | 'indexed' | 'failed';
+      indexingError: string | null;
+      published: boolean;
+      discoverable: boolean;
+    };
+  };
+  qualityChecks: DiscoveryQualityCheck[];
 }
 
 export interface WebhookEndpoint {
