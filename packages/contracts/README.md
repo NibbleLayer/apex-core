@@ -2,6 +2,10 @@
 
 Shared Zod schemas and TypeScript types for the Apex x402 payment protocol.
 
+## Purpose
+
+This is the **source of truth** for all public API contracts in the Apex ecosystem. Every request shape, response type, manifest structure, and event payload used by the API, SDK, and dashboard is defined, validated, and exported from this package.
+
 ## Install
 
 ```bash

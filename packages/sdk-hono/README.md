@@ -2,6 +2,10 @@
 
 Hono middleware SDK that connects your application to the Apex control plane for x402 payment-gated routes.
 
+## Purpose
+
+The primary integration surface for external developers. Drop one line of middleware onto any Hono route and instantly enforce x402 payment requirements without managing pricing, wallets, or settlements yourself.
+
 ## Install
 
 ```bash

@@ -2,6 +2,10 @@
 
 Manifest builder and checksum utilities for the Apex control plane.
 
+## Purpose
+
+Provides public helpers for building, versioning, and diffing x402-compatible manifests. Used by the API manifest routes, the dashboard manifest preview, and external CI tools that need to validate or construct manifests.
+
 ## Install
 
 ```bash
@@ -147,6 +151,10 @@ The output of `buildManifest` is an `ApexManifest` object containing:
 - **`eventsEndpoint`** — Endpoint for payment event delivery.
 - **`refreshIntervalMs`** — Suggested refresh interval for SDK consumers.
 - **`checksum`** — SHA256 hash of the entire canonical manifest JSON.
+
+## Dependencies
+
+- `@nibblelayer/apex-contracts` — types and schemas
 
 ## License
 
