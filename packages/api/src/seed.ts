@@ -25,11 +25,12 @@ export function createId(): string {
   return `c${crypto.randomBytes(16).toString('hex').slice(0, 24)}`;
 }
 
-export async function generateApiKey(): Promise<{ rawKey: string; keyHash: string }> {
+export async function generateApiKey(): Promise<{ rawKey: string; keyHash: string; keyPrefix: string }> {
   const bytes = crypto.randomBytes(32);
   const rawKey = `apex_${bytes.toString('hex')}`;
   const keyHash = await hashApiKey(rawKey);
-  return { rawKey, keyHash };
+  const keyPrefix = rawKey.slice(0, 8);
+  return { rawKey, keyHash, keyPrefix };
 }
 
 export function getSeedKeyFilePath(): string {
@@ -68,7 +69,7 @@ export async function bootstrapOrg(params: {
 
     const orgId = createId();
     const keyId = createId();
-    const { rawKey, keyHash } = await generateApiKey();
+    const { rawKey, keyHash, keyPrefix } = await generateApiKey();
 
     await pool.query(
       'INSERT INTO organizations (id, name, slug) VALUES ($1, $2, $3)',
@@ -76,8 +77,8 @@ export async function bootstrapOrg(params: {
     );
 
     await pool.query(
-      'INSERT INTO api_keys (id, organization_id, key_hash, label) VALUES ($1, $2, $3, $4)',
-      [keyId, orgId, keyHash, label],
+      'INSERT INTO api_keys (id, organization_id, key_hash, key_prefix, label) VALUES ($1, $2, $3, $4, $5)',
+      [keyId, orgId, keyHash, keyPrefix, label],
     );
 
     await writeSeedKey(rawKey);
@@ -118,7 +119,10 @@ function parseArgs(argv: string[]): { name: string; slug: string; label: string 
 
 async function main() {
   const { name, slug, label } = parseArgs(process.argv.slice(2));
-  const connectionString = process.env.DATABASE_URL || 'postgresql://apex:apex_dev@localhost:5433/apex_dev';
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    throw new Error('DATABASE_URL environment variable is required');
+  }
 
   const result = await bootstrapOrg({ connectionString, name, slug, label });
 

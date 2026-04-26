@@ -12,9 +12,10 @@ export function createAuthMiddleware() {
     }
 
     const rawKey = authHeader.slice(7);
+    const prefix = rawKey.slice(0, 8);
 
     const db = await getDb();
-    const allKeys = await db
+    const matchingKeys = await db
       .select({
         id: apiKeys.id,
         organizationId: apiKeys.organizationId,
@@ -22,10 +23,11 @@ export function createAuthMiddleware() {
         revokedAt: apiKeys.revokedAt,
         keyHash: apiKeys.keyHash,
       })
-      .from(apiKeys);
+      .from(apiKeys)
+      .where(eq(apiKeys.keyPrefix, prefix));
 
     let found = null;
-    for (const keyRow of allKeys) {
+    for (const keyRow of matchingKeys) {
       if (await verifyApiKey(rawKey, keyRow.keyHash)) {
         found = keyRow;
         break;
@@ -50,7 +52,6 @@ export function createAuthMiddleware() {
     c.set('organizationId', found.organizationId);
     c.set('apiKeyId', found.id);
     c.set('apiKeyLabel', found.label);
-    c.set('apiKeyRaw', rawKey);
 
     await next();
   };

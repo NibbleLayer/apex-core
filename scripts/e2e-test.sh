@@ -4,10 +4,6 @@ set -euo pipefail
 ROOT_DIR="$(git rev-parse --show-toplevel)"
 API_BASE="${API_BASE:-http://localhost:3000}"
 API_KEY="${APEX_API_KEY:-}"
-DATABASE_URL="postgresql://apex:apex_dev@localhost:5433/apex_dev"
-PASSED=0
-FAILED=0
-SETUP_COMPLETE=0
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -16,6 +12,15 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 log() { printf '%b\n' "$1"; }
+
+if [[ -z "${DATABASE_URL:-}" ]]; then
+  log "${RED}ERROR:${NC} DATABASE_URL environment variable is not set."
+  exit 1
+fi
+
+PASSED=0
+FAILED=0
+SETUP_COMPLETE=0
 
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then

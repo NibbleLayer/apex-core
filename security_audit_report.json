@@ -1,0 +1,2468 @@
+[
+  {
+    "file": ".apex-seed-key",
+    "line": 1,
+    "category": "Apex API Key",
+    "severity": "CRITICAL",
+    "snippet": "apex_f76fa6295c9e1ec08579135b1b6222c898204b7561f003d7917ede4771fc1a67",
+    "recommendation": "This is a real API key. Rotate immediately and remove from git history.",
+    "context": ""
+  },
+  {
+    "file": ".apex-seed-key",
+    "line": 1,
+    "category": "Committed API Seed Key",
+    "severity": "CRITICAL",
+    "snippet": "apex_f76fa6295c9e1ec08579135b1...",
+    "recommendation": "This file contains a real API key and is committed to git. Rotate immediately and add to .gitignore.",
+    "context": "File exists in repository root and contains an API key"
+  },
+  {
+    "file": "compose.yaml",
+    "line": 21,
+    "category": "Hardcoded Database Password",
+    "severity": "CRITICAL",
+    "snippet": "POSTGRES_PASSWORD: apex_dev",
+    "recommendation": "Use environment variable substitution or secrets. Never hardcode DB passwords in compose files.",
+    "context": "Password: apex_dev is visible in compose.yaml"
+  },
+  {
+    "file": "compose.yaml",
+    "line": 44,
+    "category": "Database Connection String",
+    "severity": "CRITICAL",
+    "snippet": "DATABASE_URL: postgresql://apex:apex_dev@postgres:5432/apex_dev",
+    "recommendation": "Move connection strings to environment variables. Never commit credentials in URLs.",
+    "context": ""
+  },
+  {
+    "file": "compose.yaml",
+    "line": 44,
+    "category": "Hardcoded Connection String",
+    "severity": "CRITICAL",
+    "snippet": "DATABASE_URL: postgresql://apex:apex_dev@postgres:5432/apex_dev",
+    "recommendation": "Use environment variable substitution for DATABASE_URL.",
+    "context": "Full connection string with password exposed in compose.yaml"
+  },
+  {
+    "file": "compose.yaml",
+    "line": 58,
+    "category": "Database Connection String",
+    "severity": "CRITICAL",
+    "snippet": "DATABASE_URL: postgresql://apex:apex_dev@postgres:5432/apex_dev",
+    "recommendation": "Move connection strings to environment variables. Never commit credentials in URLs.",
+    "context": ""
+  },
+  {
+    "file": "compose.yaml",
+    "line": 58,
+    "category": "Hardcoded Connection String",
+    "severity": "CRITICAL",
+    "snippet": "DATABASE_URL: postgresql://apex:apex_dev@postgres:5432/apex_dev",
+    "recommendation": "Use environment variable substitution for DATABASE_URL.",
+    "context": "Full connection string with password exposed in compose.yaml"
+  },
+  {
+    "file": "packages/api/src/db/index.ts",
+    "line": 6,
+    "category": "Database Connection String",
+    "severity": "CRITICAL",
+    "snippet": "connectionString: process.env.DATABASE_URL || 'postgresql://apex:apex_dev@localhost:5433/apex_dev',",
+    "recommendation": "Move connection strings to environment variables. Never commit credentials in URLs.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/seed.ts",
+    "line": 121,
+    "category": "Database Connection String",
+    "severity": "CRITICAL",
+    "snippet": "const connectionString = process.env.DATABASE_URL || 'postgresql://apex:apex_dev@localhost:5433/apex_dev';",
+    "recommendation": "Move connection strings to environment variables. Never commit credentials in URLs.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/seed.ts",
+    "line": 121,
+    "category": "Hardcoded Database Credentials",
+    "severity": "CRITICAL",
+    "snippet": "const connectionString = process.env.DATABASE_URL || 'postgresql://apex:apex_dev@localhost:5433/apex_dev';",
+    "recommendation": "Remove hardcoded fallback connection string. Force DATABASE_URL env var.",
+    "context": "Default fallback contains real password (apex_dev)"
+  },
+  {
+    "file": "packages/api/test/auth-routes.test.ts",
+    "line": 68,
+    "category": "Hardcoded API Key",
+    "severity": "CRITICAL",
+    "snippet": "body: JSON.stringify({ api_key: 'apex_invalid' }),",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/config-service.test.ts",
+    "line": 45,
+    "category": "Default/Weak Password",
+    "severity": "CRITICAL",
+    "snippet": "expect(manifest.wallet.address).toBe('0x1234567890abcdef1234567890abcdef12345678');",
+    "recommendation": "Remove default passwords. Force users to set passwords on first login.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/config-service.test.ts",
+    "line": 69,
+    "category": "Default/Weak Password",
+    "severity": "CRITICAL",
+    "snippet": "expect(routeConfig.accepts[0].payTo).toBe('0x1234567890abcdef1234567890abcdef12345678');",
+    "recommendation": "Remove default passwords. Force users to set passwords on first login.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/events.test.ts",
+    "line": 118,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/helpers.ts",
+    "line": 129,
+    "category": "Default/Weak Password",
+    "severity": "CRITICAL",
+    "snippet": "address: '0x1234567890abcdef1234567890abcdef12345678',",
+    "recommendation": "Remove default passwords. Force users to set passwords on first login.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/helpers.ts",
+    "line": 130,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/helpers.ts",
+    "line": 172,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/integration/full-flow.test.ts",
+    "line": 79,
+    "category": "Default/Weak Password",
+    "severity": "CRITICAL",
+    "snippet": "address: '0x1234567890abcdef1234567890abcdef12345678',",
+    "recommendation": "Remove default passwords. Force users to set passwords on first login.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/integration/full-flow.test.ts",
+    "line": 80,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/integration/full-flow.test.ts",
+    "line": 106,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/integration/full-flow.test.ts",
+    "line": 125,
+    "category": "Default/Weak Password",
+    "severity": "CRITICAL",
+    "snippet": "expect(manifest1.wallet.address).toBe('0x1234567890abcdef1234567890abcdef12345678');",
+    "recommendation": "Remove default passwords. Force users to set passwords on first login.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/integration/full-flow.test.ts",
+    "line": 167,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/integration/full-flow.test.ts",
+    "line": 207,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/pricing.test.ts",
+    "line": 37,
+    "category": "Default/Weak Password",
+    "severity": "CRITICAL",
+    "snippet": "address: '0x1234567890abcdef1234567890abcdef12345678',",
+    "recommendation": "Remove default passwords. Force users to set passwords on first login.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/pricing.test.ts",
+    "line": 38,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/pricing.test.ts",
+    "line": 50,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/pricing.test.ts",
+    "line": 75,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/pricing.test.ts",
+    "line": 93,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/pricing.test.ts",
+    "line": 110,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/pricing.test.ts",
+    "line": 125,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/pricing.test.ts",
+    "line": 148,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/pricing.test.ts",
+    "line": 157,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/regression/contract.test.ts",
+    "line": 112,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/regression/contract.test.ts",
+    "line": 181,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/regression/contract.test.ts",
+    "line": 250,
+    "category": "Default/Weak Password",
+    "severity": "CRITICAL",
+    "snippet": "address: '0x1234567890abcdef1234567890abcdef12345678',",
+    "recommendation": "Remove default passwords. Force users to set passwords on first login.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/regression/contract.test.ts",
+    "line": 251,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/regression/contract.test.ts",
+    "line": 279,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/regression/edge-cases.test.ts",
+    "line": 118,
+    "category": "Default/Weak Password",
+    "severity": "CRITICAL",
+    "snippet": "address: '0xTestOnly1234567890abcdef1234567890abcdef12',",
+    "recommendation": "Remove default passwords. Force users to set passwords on first login.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/regression/edge-cases.test.ts",
+    "line": 119,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/regression/edge-cases.test.ts",
+    "line": 140,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/regression/edge-cases.test.ts",
+    "line": 196,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/regression/edge-cases.test.ts",
+    "line": 229,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/regression/edge-cases.test.ts",
+    "line": 239,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/settlements.test.ts",
+    "line": 46,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/settlements.test.ts",
+    "line": 57,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/setup.ts",
+    "line": 6,
+    "category": "Database Connection String",
+    "severity": "CRITICAL",
+    "snippet": "const connectionString = process.env.DATABASE_URL || 'postgresql://apex:apex_dev@localhost:5433/apex_dev';",
+    "recommendation": "Move connection strings to environment variables. Never commit credentials in URLs.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/unit/config-service.unit.test.ts",
+    "line": 17,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/unit/config-service.unit.test.ts",
+    "line": 36,
+    "category": "Default/Weak Password",
+    "severity": "CRITICAL",
+    "snippet": "address: '0x1234567890abcdef1234567890abcdef12345678',",
+    "recommendation": "Remove default passwords. Force users to set passwords on first login.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/unit/config-service.unit.test.ts",
+    "line": 37,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/unit/event-service.unit.test.ts",
+    "line": 15,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/unit/sdk-auth.unit.test.ts",
+    "line": 7,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "const rawToken = 'apx_sdk_testtoken';",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/unit/webhook-signing.unit.test.ts",
+    "line": 9,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "const secret = 'whsec_test_secret';",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/wallets.test.ts",
+    "line": 31,
+    "category": "Default/Weak Password",
+    "severity": "CRITICAL",
+    "snippet": "address: '0x1234567890abcdef1234567890abcdef12345678',",
+    "recommendation": "Remove default passwords. Force users to set passwords on first login.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/wallets.test.ts",
+    "line": 42,
+    "category": "Default/Weak Password",
+    "severity": "CRITICAL",
+    "snippet": "expect(body.address).toBe('0x1234567890abcdef1234567890abcdef12345678');",
+    "recommendation": "Remove default passwords. Force users to set passwords on first login.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/wallets.test.ts",
+    "line": 79,
+    "category": "Default/Weak Password",
+    "severity": "CRITICAL",
+    "snippet": "address: '0x1234567890abcdef1234567890abcdef12345678',",
+    "recommendation": "Remove default passwords. Force users to set passwords on first login.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/wallets.test.ts",
+    "line": 99,
+    "category": "Default/Weak Password",
+    "severity": "CRITICAL",
+    "snippet": "address: '0x1234567890abcdef1234567890abcdef12345678',",
+    "recommendation": "Remove default passwords. Force users to set passwords on first login.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/wallets.test.ts",
+    "line": 116,
+    "category": "Default/Weak Password",
+    "severity": "CRITICAL",
+    "snippet": "address: '0x1234567890abcdef1234567890abcdef12345678',",
+    "recommendation": "Remove default passwords. Force users to set passwords on first login.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/wallets.test.ts",
+    "line": 152,
+    "category": "Default/Weak Password",
+    "severity": "CRITICAL",
+    "snippet": "address: '0x1234567890abcdef1234567890abcdef12345678',",
+    "recommendation": "Remove default passwords. Force users to set passwords on first login.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/wallets.test.ts",
+    "line": 201,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0xusdc_contract_address',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/contracts/test/contracts-package.test.ts",
+    "line": 50,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/control-plane-core/test/manifest-alignment.test.ts",
+    "line": 14,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/control-plane-core/test/manifest-alignment.test.ts",
+    "line": 30,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/control-plane-core/test/manifest.test.ts",
+    "line": 13,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/control-plane-core/test/manifest.test.ts",
+    "line": 20,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "{ scheme: 'exact' as const, amount: '$0.01', token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', network: 'eip155:84532",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/core/drizzle.config.ts",
+    "line": 8,
+    "category": "Database Connection String",
+    "severity": "CRITICAL",
+    "snippet": "url: process.env.DATABASE_URL || 'postgresql://apex:apex_dev@localhost:5433/apex_dev',",
+    "recommendation": "Move connection strings to environment variables. Never commit credentials in URLs.",
+    "context": ""
+  },
+  {
+    "file": "packages/core/test/db-schema.test.ts",
+    "line": 140,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/core/test/db-schema.test.ts",
+    "line": 228,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/core/test/db-schema.test.ts",
+    "line": 397,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/core/test/db-schema.test.ts",
+    "line": 491,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "secret: 'whsec_abc123def456',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/core/test/db-schema.test.ts",
+    "line": 583,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/core/test/db-schema.test.ts",
+    "line": 591,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/core/test/db-schema.test.ts",
+    "line": 607,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/core/test/db-schema.test.ts",
+    "line": 615,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "secret: 'cascade_secret',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/core/test/setup-db.ts",
+    "line": 6,
+    "category": "Database Connection String",
+    "severity": "CRITICAL",
+    "snippet": "process.env.DATABASE_URL || 'postgresql://apex:apex_dev@localhost:5433/apex_dev';",
+    "recommendation": "Move connection strings to environment variables. Never commit credentials in URLs.",
+    "context": ""
+  },
+  {
+    "file": "packages/dashboard/src/__tests__/client.test.ts",
+    "line": 149,
+    "category": "Default/Weak Password",
+    "severity": "CRITICAL",
+    "snippet": "setApiKey('apex_admin_123');",
+    "recommendation": "Remove default passwords. Force users to set passwords on first login.",
+    "context": ""
+  },
+  {
+    "file": "packages/dashboard/src/__tests__/client.test.ts",
+    "line": 154,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: 'apex_sdk_secret',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/dashboard/src/__tests__/client.test.ts",
+    "line": 178,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: 'apex_sdk_secret',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/dashboard/src/__tests__/client.test.ts",
+    "line": 188,
+    "category": "Default/Weak Password",
+    "severity": "CRITICAL",
+    "snippet": "setApiKey('apex_admin_123');",
+    "recommendation": "Remove default passwords. Force users to set passwords on first login.",
+    "context": ""
+  },
+  {
+    "file": "packages/dashboard/src/__tests__/onboarding-wizard.test.tsx",
+    "line": 60,
+    "category": "Default/Weak Password",
+    "severity": "CRITICAL",
+    "snippet": "fireEvent.input(screen.getByPlaceholderText('0x...'), { target: { value: '0x1234567890abcdef' } });",
+    "recommendation": "Remove default passwords. Force users to set passwords on first login.",
+    "context": ""
+  },
+  {
+    "file": "packages/dashboard/src/__tests__/onboarding-wizard.test.tsx",
+    "line": 77,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: 'apex_sdk_once',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/dashboard/src/__tests__/onboarding-wizard.test.tsx",
+    "line": 86,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "expect(await screen.findByText(/APEX_TOKEN=\"apex_sdk_once\"/)).toBeTruthy();",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/dashboard/src/__tests__/payloads.test.ts",
+    "line": 34,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x0000000000000000000000000000000000000001',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/dashboard/src/__tests__/payloads.test.ts",
+    "line": 39,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x0000000000000000000000000000000000000001',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/dashboard/src/__tests__/payloads.test.ts",
+    "line": 48,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x0000000000000000000000000000000000000001',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/dashboard/src/__tests__/payloads.test.ts",
+    "line": 64,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x0000000000000000000000000000000000000001',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/dashboard/src/__tests__/payloads.test.ts",
+    "line": 74,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x0000000000000000000000000000000000000001',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/dashboard/src/__tests__/payloads.test.ts",
+    "line": 80,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x0000000000000000000000000000000000000001',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/dashboard/src/__tests__/price-editor.test.tsx",
+    "line": 57,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/dashboard/src/__tests__/price-editor.test.tsx",
+    "line": 71,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/dashboard/src/__tests__/pricing.test.ts",
+    "line": 27,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/dashboard/src/components/OnboardingWizard.tsx",
+    "line": 64,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "return `export APEX_TOKEN=\"${token}\"\\nexport APEX_URL=\"${deriveApexApiBaseUrl()}\"`;",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/dashboard/src/utils/pricing.ts",
+    "line": 16,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/dashboard/src/utils/pricing.ts",
+    "line": 22,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/dashboard/test/smoke.test.ts",
+    "line": 72,
+    "category": "Bearer Token",
+    "severity": "CRITICAL",
+    "snippet": "Authorization: 'Bearer apex_bearer_test_key',",
+    "recommendation": "Remove hardcoded tokens. Use environment variables.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/src/client.ts",
+    "line": 19,
+    "category": "Hardcoded API Key",
+    "severity": "CRITICAL",
+    "snippet": "*   apiKey: 'apex_...',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/apex.test.ts",
+    "line": 18,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "const envToken = 'apx_sdk_envtoken123';",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/apex.test.ts",
+    "line": 20,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "const explicitToken = 'apx_sdk_explicit123';",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/boundary-contract.test.ts",
+    "line": 58,
+    "category": "Hardcoded API Key",
+    "severity": "CRITICAL",
+    "snippet": "apiKey: 'apex_testkey123',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/boundary-contract.test.ts",
+    "line": 98,
+    "category": "Hardcoded API Key",
+    "severity": "CRITICAL",
+    "snippet": "const config = baseConfig({ apiKey: 'apex_legacykey999' });",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/boundary-contract.test.ts",
+    "line": 119,
+    "category": "Hardcoded API Key",
+    "severity": "CRITICAL",
+    "snippet": "const apiKey = 'apx_sdk_scopedtoken456';",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/boundary-contract.test.ts",
+    "line": 142,
+    "category": "Hardcoded API Key",
+    "severity": "CRITICAL",
+    "snippet": "const legacyConfig = baseConfig({ apiKey: 'apex_shape_test' });",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/boundary-contract.test.ts",
+    "line": 222,
+    "category": "Hardcoded API Key",
+    "severity": "CRITICAL",
+    "snippet": "const config = baseConfig({ apiKey: 'apex_extra_fields' });",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/boundary-contract.test.ts",
+    "line": 257,
+    "category": "Hardcoded API Key",
+    "severity": "CRITICAL",
+    "snippet": "apiKey: 'apex_oss_local',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/boundary-contract.test.ts",
+    "line": 285,
+    "category": "Hardcoded API Key",
+    "severity": "CRITICAL",
+    "snippet": "apiKey: 'apex_hosted_test',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/client.test.ts",
+    "line": 62,
+    "category": "Hardcoded API Key",
+    "severity": "CRITICAL",
+    "snippet": "apiKey: 'apex_testkey123',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/client.test.ts",
+    "line": 151,
+    "category": "Hardcoded API Key",
+    "severity": "CRITICAL",
+    "snippet": "apiKey: 'apx_sdk_test123',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/events.test.ts",
+    "line": 6,
+    "category": "Hardcoded API Key",
+    "severity": "CRITICAL",
+    "snippet": "apiKey: 'apex_testkey123',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/events.test.ts",
+    "line": 17,
+    "category": "Default/Weak Password",
+    "severity": "CRITICAL",
+    "snippet": "buyerAddress: '0x1234567890abcdef1234567890abcdef12345678',",
+    "recommendation": "Remove default passwords. Force users to set passwords on first login.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/events.test.ts",
+    "line": 19,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/events.test.ts",
+    "line": 245,
+    "category": "Default/Weak Password",
+    "severity": "CRITICAL",
+    "snippet": "from: '0x1234567890abcdef1234567890abcdef12345678',",
+    "recommendation": "Remove default passwords. Force users to set passwords on first login.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/events.test.ts",
+    "line": 264,
+    "category": "Default/Weak Password",
+    "severity": "CRITICAL",
+    "snippet": "buyerAddress: '0x1234567890abcdef1234567890abcdef12345678',",
+    "recommendation": "Remove default passwords. Force users to set passwords on first login.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/events.test.ts",
+    "line": 266,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/events.test.ts",
+    "line": 304,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/events.test.ts",
+    "line": 312,
+    "category": "Default/Weak Password",
+    "severity": "CRITICAL",
+    "snippet": "from: '0x1234567890abcdef1234567890abcdef12345678',",
+    "recommendation": "Remove default passwords. Force users to set passwords on first login.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/events.test.ts",
+    "line": 327,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/fixtures/manifest.mock.ts",
+    "line": 11,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/idempotency.test.ts",
+    "line": 13,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/integration.test.ts",
+    "line": 54,
+    "category": "Hardcoded API Key",
+    "severity": "CRITICAL",
+    "snippet": "apiKey: 'apex_test',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/integration.test.ts",
+    "line": 77,
+    "category": "Hardcoded API Key",
+    "severity": "CRITICAL",
+    "snippet": "apiKey: 'apex_test',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/integration.test.ts",
+    "line": 94,
+    "category": "Hardcoded API Key",
+    "severity": "CRITICAL",
+    "snippet": "apiKey: 'apex_test',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/integration.test.ts",
+    "line": 115,
+    "category": "Hardcoded API Key",
+    "severity": "CRITICAL",
+    "snippet": "apiKey: 'apex_test',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/manifest-alignment.test.ts",
+    "line": 20,
+    "category": "Hardcoded API Key",
+    "severity": "CRITICAL",
+    "snippet": "apiKey: 'apex_testkey123',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/manifest-alignment.test.ts",
+    "line": 66,
+    "category": "Default/Weak Password",
+    "severity": "CRITICAL",
+    "snippet": "buyerAddress: '0x1234567890abcdef1234567890abcdef12345678',",
+    "recommendation": "Remove default passwords. Force users to set passwords on first login.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/manifest-alignment.test.ts",
+    "line": 68,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/manifest.test.ts",
+    "line": 14,
+    "category": "Hardcoded API Key",
+    "severity": "CRITICAL",
+    "snippet": "apiKey: 'apex_testkey123',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/manifest.test.ts",
+    "line": 25,
+    "category": "Hardcoded API Key",
+    "severity": "CRITICAL",
+    "snippet": "const scopedConfig = { ...fullConfig, apiKey: 'apx_sdk_testtoken123' };",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/refresh.test.ts",
+    "line": 71,
+    "category": "Hardcoded API Key",
+    "severity": "CRITICAL",
+    "snippet": "apiKey: 'apex_test',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/refresh.test.ts",
+    "line": 125,
+    "category": "Hardcoded API Key",
+    "severity": "CRITICAL",
+    "snippet": "apiKey: 'apex_test',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/refresh.test.ts",
+    "line": 151,
+    "category": "Hardcoded API Key",
+    "severity": "CRITICAL",
+    "snippet": "apiKey: 'apex_test',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/regression/sdk-regression.test.ts",
+    "line": 19,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/regression/sdk-regression.test.ts",
+    "line": 185,
+    "category": "Hardcoded Secret/Token",
+    "severity": "CRITICAL",
+    "snippet": "token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/regression/sdk-regression.test.ts",
+    "line": 188,
+    "category": "Default/Weak Password",
+    "severity": "CRITICAL",
+    "snippet": "buyerAddress: '0xBuyer1234567890abcdef1234567890abcdef1234',",
+    "recommendation": "Remove default passwords. Force users to set passwords on first login.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/route-registration.test.ts",
+    "line": 5,
+    "category": "Hardcoded API Key",
+    "severity": "CRITICAL",
+    "snippet": "const apiKey = 'apx_sdk_test123';",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "scripts/dev.sh",
+    "line": 5,
+    "category": "Database Connection String",
+    "severity": "CRITICAL",
+    "snippet": "export DATABASE_URL=\"postgresql://apex:apex_dev@localhost:5433/apex_dev\"",
+    "recommendation": "Move connection strings to environment variables. Never commit credentials in URLs.",
+    "context": ""
+  },
+  {
+    "file": "scripts/e2e-test.sh",
+    "line": 6,
+    "category": "Hardcoded API Key",
+    "severity": "CRITICAL",
+    "snippet": "API_KEY=\"${APEX_API_KEY:-}\"",
+    "recommendation": "Move to environment variables or secrets manager.",
+    "context": ""
+  },
+  {
+    "file": "scripts/e2e-test.sh",
+    "line": 7,
+    "category": "Database Connection String",
+    "severity": "CRITICAL",
+    "snippet": "DATABASE_URL=\"postgresql://apex:apex_dev@localhost:5433/apex_dev\"",
+    "recommendation": "Move connection strings to environment variables. Never commit credentials in URLs.",
+    "context": ""
+  },
+  {
+    "file": "scripts/e2e-test.sh",
+    "line": 345,
+    "category": "Default/Weak Password",
+    "severity": "CRITICAL",
+    "snippet": "readarray -t r < <(api POST \"/services/${SERVICE_ID}/wallets\" \"{\\\"environmentId\\\":\\\"${ENV_ID}\\\",\\\"address\\\":\\\"0x12345678",
+    "recommendation": "Remove default passwords. Force users to set passwords on first login.",
+    "context": ""
+  },
+  {
+    "file": "security_audit.py",
+    "line": 188,
+    "category": "Default/Weak Password",
+    "severity": "CRITICAL",
+    "snippet": "'default_password': {",
+    "recommendation": "Remove default passwords. Force users to set passwords on first login.",
+    "context": ""
+  },
+  {
+    "file": "security_audit.py",
+    "line": 189,
+    "category": "Default/Weak Password",
+    "severity": "CRITICAL",
+    "snippet": "'regex': re.compile(r'(?i)(default[_-]?password|default[_-]?pwd|password.*default|admin.*123|password.*123|123456|qwerty",
+    "recommendation": "Remove default passwords. Force users to set passwords on first login.",
+    "context": ""
+  },
+  {
+    "file": "security_audit.py",
+    "line": 309,
+    "category": "Database Connection String",
+    "severity": "CRITICAL",
+    "snippet": "if 'postgresql://apex:apex_dev@localhost:5433/apex_dev' in line:",
+    "recommendation": "Move connection strings to environment variables. Never commit credentials in URLs.",
+    "context": ""
+  },
+  {
+    "file": "security_audit.py",
+    "line": 484,
+    "category": "Database Connection String",
+    "severity": "CRITICAL",
+    "snippet": "if 'DATABASE_URL: postgresql://apex:apex_dev@' in stripped:",
+    "recommendation": "Move connection strings to environment variables. Never commit credentials in URLs.",
+    "context": ""
+  },
+  {
+    "file": "security_audit.py",
+    "line": 531,
+    "category": "Default/Weak Password",
+    "severity": "CRITICAL",
+    "snippet": "if not any(fake in line.lower() for fake in ['test', 'fake', 'mock', 'example', 'dummy', 'password123']):",
+    "recommendation": "Remove default passwords. Force users to set passwords on first login.",
+    "context": ""
+  },
+  {
+    "file": ".dockerignore",
+    "line": 2,
+    "category": "Environment File",
+    "severity": "WARNING",
+    "snippet": ".env",
+    "recommendation": "Ensure .env files are in .gitignore and not committed.",
+    "context": ""
+  },
+  {
+    "file": ".dockerignore",
+    "line": 3,
+    "category": "Environment File",
+    "severity": "WARNING",
+    "snippet": ".env.local",
+    "recommendation": "Ensure .env files are in .gitignore and not committed.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/middleware/auth.ts",
+    "line": 17,
+    "category": "Full Table Scan on Auth",
+    "severity": "WARNING",
+    "snippet": "const allKeys = await db",
+    "recommendation": "Loading all API keys into memory is O(n) and does not scale. Use a keyed lookup or caching layer.",
+    "context": "Every authenticated request loads ALL API keys from the database"
+  },
+  {
+    "file": "packages/api/src/middleware/auth.ts",
+    "line": 25,
+    "category": "Full Table Scan on Auth",
+    "severity": "WARNING",
+    "snippet": ".from(apiKeys);",
+    "recommendation": "Loading all API keys into memory is O(n) and does not scale. Use a keyed lookup or caching layer.",
+    "context": "Every authenticated request loads ALL API keys from the database"
+  },
+  {
+    "file": "packages/api/src/middleware/auth.ts",
+    "line": 53,
+    "category": "Raw API Key Stored in Context",
+    "severity": "WARNING",
+    "snippet": "c.set('apiKeyRaw', rawKey);",
+    "recommendation": "Storing raw API key in context risks accidental logging/exposure. Store only orgId and keyId.",
+    "context": "Raw key accessible via c.get(\"apiKeyRaw\") throughout request lifecycle"
+  },
+  {
+    "file": "packages/api/src/seed.ts",
+    "line": 96,
+    "category": "Predictable Default Organization",
+    "severity": "WARNING",
+    "snippet": "const args = { name: 'My Organization', slug: 'my-org', label: 'Default' };",
+    "recommendation": "Default org slug is predictable. Consider requiring explicit configuration.",
+    "context": "Default values: name=\"My Organization\", slug=\"my-org\", label=\"Default\""
+  },
+  {
+    "file": "packages/core/test/db-schema.test.ts",
+    "line": 28,
+    "category": "Insecure Random (Math.random)",
+    "severity": "WARNING",
+    "snippet": "return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;",
+    "recommendation": "Use crypto.randomBytes() or crypto.getRandomValues() for security-sensitive operations.",
+    "context": ""
+  },
+  {
+    "file": "packages/core/test/db-schema.test.ts",
+    "line": 491,
+    "category": "Test File Contains Real-Looking Password",
+    "severity": "WARNING",
+    "snippet": "secret: 'whsec_abc123def456',",
+    "recommendation": "Use obviously fake test values like \"test_password\" or \"fake_secret\".",
+    "context": "Password does not appear to be a clearly fake test value"
+  },
+  {
+    "file": "packages/core/test/db-schema.test.ts",
+    "line": 615,
+    "category": "Test File Contains Real-Looking Password",
+    "severity": "WARNING",
+    "snippet": "secret: 'cascade_secret',",
+    "recommendation": "Use obviously fake test values like \"test_password\" or \"fake_secret\".",
+    "context": "Password does not appear to be a clearly fake test value"
+  },
+  {
+    "file": "packages/sdk-hono/test/boundary-contract.test.ts",
+    "line": 226,
+    "category": "Test File Contains Real-Looking Password",
+    "severity": "WARNING",
+    "snippet": "__internal__: { secret: 'nope' },",
+    "recommendation": "Use obviously fake test values like \"test_password\" or \"fake_secret\".",
+    "context": "Password does not appear to be a clearly fake test value"
+  },
+  {
+    "file": "security_audit.py",
+    "line": 110,
+    "category": "Security-Related TODO/FIXME",
+    "severity": "WARNING",
+    "snippet": "'todo_security': {",
+    "recommendation": "Address security TODOs before release.",
+    "context": ""
+  },
+  {
+    "file": "security_audit.py",
+    "line": 111,
+    "category": "Security-Related TODO/FIXME",
+    "severity": "WARNING",
+    "snippet": "'regex': re.compile(r'(?i)(TODO|FIXME|HACK|XXX)\\s*[:\\-]?\\s*(.*security|vuln|leak|password|secret|token|key|bypass|auth|c",
+    "recommendation": "Address security TODOs before release.",
+    "context": ""
+  },
+  {
+    "file": "security_audit.py",
+    "line": 132,
+    "category": "Dynamic Code Execution",
+    "severity": "WARNING",
+    "snippet": "'recommendation': 'Avoid eval() and new Function(). They are dangerous and can lead to code injection.'",
+    "recommendation": "Avoid eval() and new Function(). They are dangerous and can lead to code injection.",
+    "context": ""
+  },
+  {
+    "file": "security_audit.py",
+    "line": 170,
+    "category": "CSRF Protection Disabled",
+    "severity": "WARNING",
+    "snippet": "'csrf_disabled': {",
+    "recommendation": "Ensure CSRF protection is enabled in production.",
+    "context": ""
+  },
+  {
+    "file": "security_audit.py",
+    "line": 171,
+    "category": "CSRF Protection Disabled",
+    "severity": "WARNING",
+    "snippet": "'regex': re.compile(r'(?i)(csrf|xsrf).*false|disable.*csrf|csrf.*disable'),",
+    "recommendation": "Ensure CSRF protection is enabled in production.",
+    "context": ""
+  },
+  {
+    "file": "security_audit.py",
+    "line": 173,
+    "category": "CSRF Protection Disabled",
+    "severity": "WARNING",
+    "snippet": "'category': 'CSRF Protection Disabled',",
+    "recommendation": "Ensure CSRF protection is enabled in production.",
+    "context": ""
+  },
+  {
+    "file": "security_audit.py",
+    "line": 241,
+    "category": "Security-Related TODO/FIXME",
+    "severity": "WARNING",
+    "snippet": "if file_path.suffix == '.md' and pattern_name in ['console_log', 'todo_general', 'todo_security']:",
+    "recommendation": "Address security TODOs before release.",
+    "context": ""
+  },
+  {
+    "file": "compose.yaml",
+    "line": 68,
+    "category": "Internal/Localhost URL",
+    "severity": "INFO",
+    "snippet": "test: [\"CMD-SHELL\", \"wget -qO- http://localhost:3000/health || exit 1\"]",
+    "recommendation": "Ensure internal URLs are not exposed in production configurations.",
+    "context": ""
+  },
+  {
+    "file": "docs/ONE_LINE_INTEGRATION.md",
+    "line": 14,
+    "category": "Environment Variable Access",
+    "severity": "INFO",
+    "snippet": "app.use(apex({ token: process.env.APEX_TOKEN }));",
+    "recommendation": "Ensure required env vars are validated at startup. Check for defaults that might be insecure.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/crypto.ts",
+    "line": 11,
+    "category": "Salt Generation",
+    "severity": "INFO",
+    "snippet": "salt = randomBytes(32)",
+    "recommendation": "Good: 32-byte salt is sufficient.",
+    "context": "Proper random salt generation"
+  },
+  {
+    "file": "packages/api/src/crypto.ts",
+    "line": 12,
+    "category": "Derived Key Length",
+    "severity": "INFO",
+    "snippet": "keylen = 64",
+    "recommendation": "Good: 64-byte derived key provides 512 bits of security.",
+    "context": "Sufficient key length for API key hashing"
+  },
+  {
+    "file": "packages/api/src/crypto.ts",
+    "line": 13,
+    "category": "Scrypt Parameters",
+    "severity": "INFO",
+    "snippet": "N=16384, r=8, p=1",
+    "recommendation": "Scrypt params (N=16384, r=8, p=1) are reasonable but consider N=65536 or higher for long-term security.",
+    "context": "Current params: N=2^14, r=8, p=1. OWASP recommends N=2^16+ for new systems."
+  },
+  {
+    "file": "packages/api/src/crypto.ts",
+    "line": 40,
+    "category": "Constant-Time Comparison",
+    "severity": "INFO",
+    "snippet": "timingSafeEqual(derivedKey, expectedKey)",
+    "recommendation": "Good: Uses constant-time comparison to prevent timing attacks.",
+    "context": "Prevents timing side-channel attacks"
+  },
+  {
+    "file": "packages/api/src/db/index.ts",
+    "line": 6,
+    "category": "Environment Variable Access",
+    "severity": "INFO",
+    "snippet": "connectionString: process.env.DATABASE_URL || 'postgresql://apex:apex_dev@localhost:5433/apex_dev',",
+    "recommendation": "Ensure required env vars are validated at startup. Check for defaults that might be insecure.",
+    "context": "Has default fallback - verify it's not a hardcoded secret"
+  },
+  {
+    "file": "packages/api/src/index.ts",
+    "line": 5,
+    "category": "Environment Variable Access",
+    "severity": "INFO",
+    "snippet": "const port = Number(process.env.PORT || 3000);",
+    "recommendation": "Ensure required env vars are validated at startup. Check for defaults that might be insecure.",
+    "context": "Has default fallback - verify it's not a hardcoded secret"
+  },
+  {
+    "file": "packages/api/src/index.ts",
+    "line": 14,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.log(`Apex API running on http://localhost:${info.port}`);",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/index.ts",
+    "line": 14,
+    "category": "Internal/Localhost URL",
+    "severity": "INFO",
+    "snippet": "console.log(`Apex API running on http://localhost:${info.port}`);",
+    "recommendation": "Ensure internal URLs are not exposed in production configurations.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/middleware/audit-log.ts",
+    "line": 37,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.log('[AUDIT]', JSON.stringify(entry));",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/middleware/error-handler.ts",
+    "line": 8,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.error('Unhandled error:', err);",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/routes/events.ts",
+    "line": 39,
+    "category": "Raw SQL Query",
+    "severity": "INFO",
+    "snippet": "const typeFilter = c.req.query('type');",
+    "recommendation": "Ensure all raw SQL uses parameterized queries.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/routes/events.ts",
+    "line": 40,
+    "category": "Raw SQL Query",
+    "severity": "INFO",
+    "snippet": "const limit = Math.min(Math.max(parseInt(c.req.query('limit') ?? '50') || 50, 1), 100);",
+    "recommendation": "Ensure all raw SQL uses parameterized queries.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/routes/events.ts",
+    "line": 41,
+    "category": "Raw SQL Query",
+    "severity": "INFO",
+    "snippet": "const offset = Math.max(parseInt(c.req.query('offset') ?? '0') || 0, 0);",
+    "recommendation": "Ensure all raw SQL uses parameterized queries.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/routes/manifests.ts",
+    "line": 87,
+    "category": "Raw SQL Query",
+    "severity": "INFO",
+    "snippet": "const env = parseManifestEnvironment(c.req.query('env'));",
+    "recommendation": "Ensure all raw SQL uses parameterized queries.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/routes/manifests.ts",
+    "line": 108,
+    "category": "Raw SQL Query",
+    "severity": "INFO",
+    "snippet": "const requestedServiceId = c.req.query('serviceId');",
+    "recommendation": "Ensure all raw SQL uses parameterized queries.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/routes/manifests.ts",
+    "line": 109,
+    "category": "Raw SQL Query",
+    "severity": "INFO",
+    "snippet": "const requestedEnv = c.req.query('env');",
+    "recommendation": "Ensure all raw SQL uses parameterized queries.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/routes/settlements.ts",
+    "line": 29,
+    "category": "Raw SQL Query",
+    "severity": "INFO",
+    "snippet": "const statusFilter = c.req.query('status');",
+    "recommendation": "Ensure all raw SQL uses parameterized queries.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/routes/settlements.ts",
+    "line": 30,
+    "category": "Raw SQL Query",
+    "severity": "INFO",
+    "snippet": "const limit = Math.min(Math.max(parseInt(c.req.query('limit') ?? '50') || 50, 1), 100);",
+    "recommendation": "Ensure all raw SQL uses parameterized queries.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/routes/settlements.ts",
+    "line": 31,
+    "category": "Raw SQL Query",
+    "severity": "INFO",
+    "snippet": "const offset = Math.max(parseInt(c.req.query('offset') ?? '0') || 0, 0);",
+    "recommendation": "Ensure all raw SQL uses parameterized queries.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/routes/wallets.ts",
+    "line": 92,
+    "category": "Raw SQL Query",
+    "severity": "INFO",
+    "snippet": "const envFilter = c.req.query('environment_id');",
+    "recommendation": "Ensure all raw SQL uses parameterized queries.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/routes/webhooks.ts",
+    "line": 108,
+    "category": "Raw SQL Query",
+    "severity": "INFO",
+    "snippet": "const status = c.req.query('status');",
+    "recommendation": "Ensure all raw SQL uses parameterized queries.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/seed.ts",
+    "line": 37,
+    "category": "Environment Variable Access",
+    "severity": "INFO",
+    "snippet": "process.env.GIT_ROOT || path.resolve(import.meta.dirname, '../../../'),",
+    "recommendation": "Ensure required env vars are validated at startup. Check for defaults that might be insecure.",
+    "context": "Has default fallback - verify it's not a hardcoded secret"
+  },
+  {
+    "file": "packages/api/src/seed.ts",
+    "line": 121,
+    "category": "Environment Variable Access",
+    "severity": "INFO",
+    "snippet": "const connectionString = process.env.DATABASE_URL || 'postgresql://apex:apex_dev@localhost:5433/apex_dev';",
+    "recommendation": "Ensure required env vars are validated at startup. Check for defaults that might be insecure.",
+    "context": "Has default fallback - verify it's not a hardcoded secret"
+  },
+  {
+    "file": "packages/api/src/seed.ts",
+    "line": 126,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.log(`\\n  Organization \"${slug}\" already exists \u2014 skipping.\\n`);",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/seed.ts",
+    "line": 130,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.log('');",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/seed.ts",
+    "line": 131,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.log('  \u2705  Bootstrap complete');",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/seed.ts",
+    "line": 132,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.log('');",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/seed.ts",
+    "line": 133,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.log(`  Organization : ${name}`);",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/seed.ts",
+    "line": 134,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.log(`  Slug         : ${slug}`);",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/seed.ts",
+    "line": 135,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.log(`  Key label    : ${label}`);",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/seed.ts",
+    "line": 136,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.log('');",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/seed.ts",
+    "line": 137,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.log('  \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/seed.ts",
+    "line": 138,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.log('  \u2502  API KEY (save this \u2014 it will NOT be shown again)');",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/seed.ts",
+    "line": 139,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.log('  \u2502');",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/seed.ts",
+    "line": 140,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.log(`  \u2502  ${result.rawKey}`);",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/seed.ts",
+    "line": 141,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.log('  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/seed.ts",
+    "line": 142,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.log('');",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/seed.ts",
+    "line": 143,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.log('  Use it: curl -H \"Authorization: Bearer <key>\" http://localhost:3000/...');",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/seed.ts",
+    "line": 143,
+    "category": "Internal/Localhost URL",
+    "severity": "INFO",
+    "snippet": "console.log('  Use it: curl -H \"Authorization: Bearer <key>\" http://localhost:3000/...');",
+    "recommendation": "Ensure internal URLs are not exposed in production configurations.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/seed.ts",
+    "line": 144,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.log('');",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/seed.ts",
+    "line": 151,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.error('\\n  \u274c Seed failed:', err.message || err);",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/services/usage-service.ts",
+    "line": 13,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.log('[USAGE]', JSON.stringify({ ...event, period }));",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/workers/webhook.ts",
+    "line": 126,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.log('Webhook worker started');",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/workers/webhook.ts",
+    "line": 131,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.log(`Delivered ${count} webhooks`);",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/workers/webhook.ts",
+    "line": 134,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.error('Webhook worker error:', error);",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/src/workers/webhook.ts",
+    "line": 140,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.log('Webhook worker stopped');",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/setup.ts",
+    "line": 6,
+    "category": "Environment Variable Access",
+    "severity": "INFO",
+    "snippet": "const connectionString = process.env.DATABASE_URL || 'postgresql://apex:apex_dev@localhost:5433/apex_dev';",
+    "recommendation": "Ensure required env vars are validated at startup. Check for defaults that might be insecure.",
+    "context": "Has default fallback - verify it's not a hardcoded secret"
+  },
+  {
+    "file": "packages/api/test/unit/permissions.unit.test.ts",
+    "line": 76,
+    "category": "TODO/FIXME Comment",
+    "severity": "INFO",
+    "snippet": "expect(canPerform('hacker', 'read')).toBe(true);",
+    "recommendation": "Review and address technical debt.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/unit/permissions.unit.test.ts",
+    "line": 77,
+    "category": "TODO/FIXME Comment",
+    "severity": "INFO",
+    "snippet": "expect(canPerform('hacker', 'write')).toBe(false);",
+    "recommendation": "Review and address technical debt.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/unit/permissions.unit.test.ts",
+    "line": 78,
+    "category": "TODO/FIXME Comment",
+    "severity": "INFO",
+    "snippet": "expect(canPerform('hacker', 'delete')).toBe(false);",
+    "recommendation": "Review and address technical debt.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/unit/permissions.unit.test.ts",
+    "line": 79,
+    "category": "TODO/FIXME Comment",
+    "severity": "INFO",
+    "snippet": "expect(canPerform('hacker', 'manageKeys')).toBe(false);",
+    "recommendation": "Review and address technical debt.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/webhook-worker.test.ts",
+    "line": 185,
+    "category": "Internal/Localhost URL",
+    "severity": "INFO",
+    "snippet": "`http://127.0.0.1:${mockPort}/webhook`,",
+    "recommendation": "Ensure internal URLs are not exposed in production configurations.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/webhook-worker.test.ts",
+    "line": 227,
+    "category": "Internal/Localhost URL",
+    "severity": "INFO",
+    "snippet": "'http://127.0.0.1:1/fail', // Connection refused",
+    "recommendation": "Ensure internal URLs are not exposed in production configurations.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/webhook-worker.test.ts",
+    "line": 247,
+    "category": "Internal/Localhost URL",
+    "severity": "INFO",
+    "snippet": "'http://127.0.0.1:1/dead',",
+    "recommendation": "Ensure internal URLs are not exposed in production configurations.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/webhook-worker.test.ts",
+    "line": 271,
+    "category": "Internal/Localhost URL",
+    "severity": "INFO",
+    "snippet": "'http://127.0.0.1:1/not-yet',",
+    "recommendation": "Ensure internal URLs are not exposed in production configurations.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/webhook-worker.test.ts",
+    "line": 293,
+    "category": "Internal/Localhost URL",
+    "severity": "INFO",
+    "snippet": "'http://127.0.0.1:1/already',",
+    "recommendation": "Ensure internal URLs are not exposed in production configurations.",
+    "context": ""
+  },
+  {
+    "file": "packages/api/test/webhook-worker.test.ts",
+    "line": 315,
+    "category": "Internal/Localhost URL",
+    "severity": "INFO",
+    "snippet": "'http://127.0.0.1:1/disabled',",
+    "recommendation": "Ensure internal URLs are not exposed in production configurations.",
+    "context": ""
+  },
+  {
+    "file": "packages/core/drizzle.config.ts",
+    "line": 8,
+    "category": "Environment Variable Access",
+    "severity": "INFO",
+    "snippet": "url: process.env.DATABASE_URL || 'postgresql://apex:apex_dev@localhost:5433/apex_dev',",
+    "recommendation": "Ensure required env vars are validated at startup. Check for defaults that might be insecure.",
+    "context": "Has default fallback - verify it's not a hardcoded secret"
+  },
+  {
+    "file": "packages/core/test/setup-db.ts",
+    "line": 6,
+    "category": "Environment Variable Access",
+    "severity": "INFO",
+    "snippet": "process.env.DATABASE_URL || 'postgresql://apex:apex_dev@localhost:5433/apex_dev';",
+    "recommendation": "Ensure required env vars are validated at startup. Check for defaults that might be insecure.",
+    "context": "Has default fallback - verify it's not a hardcoded secret"
+  },
+  {
+    "file": "packages/core/test/setup-db.ts",
+    "line": 9,
+    "category": "Environment Variable Access",
+    "severity": "INFO",
+    "snippet": "host: process.env.DB_HOST || '127.0.0.1',",
+    "recommendation": "Ensure required env vars are validated at startup. Check for defaults that might be insecure.",
+    "context": "Has default fallback - verify it's not a hardcoded secret"
+  },
+  {
+    "file": "packages/core/test/setup-db.ts",
+    "line": 10,
+    "category": "Environment Variable Access",
+    "severity": "INFO",
+    "snippet": "port: Number(process.env.DB_PORT) || 5433,",
+    "recommendation": "Ensure required env vars are validated at startup. Check for defaults that might be insecure.",
+    "context": "Has default fallback - verify it's not a hardcoded secret"
+  },
+  {
+    "file": "packages/core/test/setup-db.ts",
+    "line": 11,
+    "category": "Environment Variable Access",
+    "severity": "INFO",
+    "snippet": "user: process.env.DB_USER || 'apex',",
+    "recommendation": "Ensure required env vars are validated at startup. Check for defaults that might be insecure.",
+    "context": "Has default fallback - verify it's not a hardcoded secret"
+  },
+  {
+    "file": "packages/core/test/setup-db.ts",
+    "line": 12,
+    "category": "Environment Variable Access",
+    "severity": "INFO",
+    "snippet": "password: process.env.DB_PASSWORD || 'apex_dev',",
+    "recommendation": "Ensure required env vars are validated at startup. Check for defaults that might be insecure.",
+    "context": "Has default fallback - verify it's not a hardcoded secret"
+  },
+  {
+    "file": "packages/core/test/setup-db.ts",
+    "line": 13,
+    "category": "Environment Variable Access",
+    "severity": "INFO",
+    "snippet": "database: process.env.DB_NAME || 'apex_dev',",
+    "recommendation": "Ensure required env vars are validated at startup. Check for defaults that might be insecure.",
+    "context": "Has default fallback - verify it's not a hardcoded secret"
+  },
+  {
+    "file": "packages/dashboard/vite.config.ts",
+    "line": 10,
+    "category": "Internal/Localhost URL",
+    "severity": "INFO",
+    "snippet": "target: 'http://localhost:3000',",
+    "recommendation": "Ensure internal URLs are not exposed in production configurations.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/src/apex.ts",
+    "line": 33,
+    "category": "Environment Variable Access",
+    "severity": "INFO",
+    "snippet": "const apiKey = options.token ?? options.apiKey ?? process.env.APEX_TOKEN;",
+    "recommendation": "Ensure required env vars are validated at startup. Check for defaults that might be insecure.",
+    "context": "Has default fallback - verify it's not a hardcoded secret"
+  },
+  {
+    "file": "packages/sdk-hono/src/apex.ts",
+    "line": 34,
+    "category": "Environment Variable Access",
+    "severity": "INFO",
+    "snippet": "const apexUrl = options.apexUrl ?? process.env.APEX_URL;",
+    "recommendation": "Ensure required env vars are validated at startup. Check for defaults that might be insecure.",
+    "context": "Has default fallback - verify it's not a hardcoded secret"
+  },
+  {
+    "file": "packages/sdk-hono/src/events.ts",
+    "line": 74,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.error('Invalid event payload:', validation.error.issues);",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/src/events.ts",
+    "line": 106,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.error('Cannot emit Apex payment event before manifest serviceId is known:', type);",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/src/events.ts",
+    "line": 150,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.error(",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/src/middleware.ts",
+    "line": 9,
+    "category": "Environment Variable Access",
+    "severity": "INFO",
+    "snippet": "return process.env.NODE_ENV === 'production';",
+    "recommendation": "Ensure required env vars are validated at startup. Check for defaults that might be insecure.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/src/middleware.ts",
+    "line": 99,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.warn(",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/apex.test.ts",
+    "line": 67,
+    "category": "Environment Variable Access",
+    "severity": "INFO",
+    "snippet": "process.env.NODE_ENV = 'test';",
+    "recommendation": "Ensure required env vars are validated at startup. Check for defaults that might be insecure.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/apex.test.ts",
+    "line": 68,
+    "category": "Environment Variable Access",
+    "severity": "INFO",
+    "snippet": "process.env.APEX_TOKEN = envToken;",
+    "recommendation": "Ensure required env vars are validated at startup. Check for defaults that might be insecure.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/apex.test.ts",
+    "line": 69,
+    "category": "Environment Variable Access",
+    "severity": "INFO",
+    "snippet": "process.env.APEX_URL = envUrl;",
+    "recommendation": "Ensure required env vars are validated at startup. Check for defaults that might be insecure.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/apex.test.ts",
+    "line": 113,
+    "category": "Environment Variable Access",
+    "severity": "INFO",
+    "snippet": "delete process.env.APEX_TOKEN;",
+    "recommendation": "Ensure required env vars are validated at startup. Check for defaults that might be insecure.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/apex.test.ts",
+    "line": 120,
+    "category": "Environment Variable Access",
+    "severity": "INFO",
+    "snippet": "delete process.env.APEX_URL;",
+    "recommendation": "Ensure required env vars are validated at startup. Check for defaults that might be insecure.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/boundary-contract.test.ts",
+    "line": 255,
+    "category": "Internal/Localhost URL",
+    "severity": "INFO",
+    "snippet": "it('works with OSS self-hosted URL (http://localhost:3000)', async () => {",
+    "recommendation": "Ensure internal URLs are not exposed in production configurations.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/boundary-contract.test.ts",
+    "line": 258,
+    "category": "Internal/Localhost URL",
+    "severity": "INFO",
+    "snippet": "apexUrl: 'http://localhost:3000',",
+    "recommendation": "Ensure internal URLs are not exposed in production configurations.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/boundary-contract.test.ts",
+    "line": 272,
+    "category": "Internal/Localhost URL",
+    "severity": "INFO",
+    "snippet": "'http://localhost:3000/services/svc_test123/manifest?env=test',",
+    "recommendation": "Ensure internal URLs are not exposed in production configurations.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/boundary-contract.test.ts",
+    "line": 315,
+    "category": "Internal/Localhost URL",
+    "severity": "INFO",
+    "snippet": "const ossConfig = baseConfig({ apiKey: sdkKey, apexUrl: 'http://localhost:3000' });",
+    "recommendation": "Ensure internal URLs are not exposed in production configurations.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/boundary-contract.test.ts",
+    "line": 327,
+    "category": "Internal/Localhost URL",
+    "severity": "INFO",
+    "snippet": "'http://localhost:3000/sdk/manifest',",
+    "recommendation": "Ensure internal URLs are not exposed in production configurations.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/integration.test.ts",
+    "line": 57,
+    "category": "Internal/Localhost URL",
+    "severity": "INFO",
+    "snippet": "apexUrl: 'http://localhost:3000',",
+    "recommendation": "Ensure internal URLs are not exposed in production configurations.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/integration.test.ts",
+    "line": 80,
+    "category": "Internal/Localhost URL",
+    "severity": "INFO",
+    "snippet": "apexUrl: 'http://localhost:3000',",
+    "recommendation": "Ensure internal URLs are not exposed in production configurations.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/integration.test.ts",
+    "line": 97,
+    "category": "Internal/Localhost URL",
+    "severity": "INFO",
+    "snippet": "apexUrl: 'http://localhost:3000',",
+    "recommendation": "Ensure internal URLs are not exposed in production configurations.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/integration.test.ts",
+    "line": 118,
+    "category": "Internal/Localhost URL",
+    "severity": "INFO",
+    "snippet": "apexUrl: 'http://localhost:3000',",
+    "recommendation": "Ensure internal URLs are not exposed in production configurations.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/middleware-initialization.test.ts",
+    "line": 9,
+    "category": "Environment Variable Access",
+    "severity": "INFO",
+    "snippet": "const originalNodeEnv = process.env.NODE_ENV;",
+    "recommendation": "Ensure required env vars are validated at startup. Check for defaults that might be insecure.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/middleware-initialization.test.ts",
+    "line": 12,
+    "category": "Environment Variable Access",
+    "severity": "INFO",
+    "snippet": "process.env.NODE_ENV = originalNodeEnv;",
+    "recommendation": "Ensure required env vars are validated at startup. Check for defaults that might be insecure.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/middleware-initialization.test.ts",
+    "line": 17,
+    "category": "Environment Variable Access",
+    "severity": "INFO",
+    "snippet": "process.env.NODE_ENV = 'production';",
+    "recommendation": "Ensure required env vars are validated at startup. Check for defaults that might be insecure.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/middleware-initialization.test.ts",
+    "line": 33,
+    "category": "Environment Variable Access",
+    "severity": "INFO",
+    "snippet": "process.env.NODE_ENV = 'test';",
+    "recommendation": "Ensure required env vars are validated at startup. Check for defaults that might be insecure.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/refresh.test.ts",
+    "line": 74,
+    "category": "Internal/Localhost URL",
+    "severity": "INFO",
+    "snippet": "apexUrl: 'http://localhost:3000',",
+    "recommendation": "Ensure internal URLs are not exposed in production configurations.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/refresh.test.ts",
+    "line": 128,
+    "category": "Internal/Localhost URL",
+    "severity": "INFO",
+    "snippet": "apexUrl: 'http://localhost:3000',",
+    "recommendation": "Ensure internal URLs are not exposed in production configurations.",
+    "context": ""
+  },
+  {
+    "file": "packages/sdk-hono/test/refresh.test.ts",
+    "line": 154,
+    "category": "Internal/Localhost URL",
+    "severity": "INFO",
+    "snippet": "apexUrl: 'http://localhost:3000',",
+    "recommendation": "Ensure internal URLs are not exposed in production configurations.",
+    "context": ""
+  },
+  {
+    "file": "scripts/dev.sh",
+    "line": 52,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "(cd \"${ROOT_DIR}/packages/api\" && node -e \"(async()=>{const pg=require('pg');const pool=new pg.Pool({connectionString:'$",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "scripts/dev.sh",
+    "line": 52,
+    "category": "Raw SQL Query",
+    "severity": "INFO",
+    "snippet": "(cd \"${ROOT_DIR}/packages/api\" && node -e \"(async()=>{const pg=require('pg');const pool=new pg.Pool({connectionString:'$",
+    "recommendation": "Ensure all raw SQL uses parameterized queries.",
+    "context": ""
+  },
+  {
+    "file": "scripts/dev.sh",
+    "line": 121,
+    "category": "Raw SQL Query",
+    "severity": "INFO",
+    "snippet": "pool.query('SELECT COUNT(*) FROM organizations').then(({ rows }) => {",
+    "recommendation": "Ensure all raw SQL uses parameterized queries.",
+    "context": ""
+  },
+  {
+    "file": "scripts/dev.sh",
+    "line": 122,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.log(rows[0].count);",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "scripts/dev.sh",
+    "line": 124,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "}).catch(() => { console.log('0'); pool.end(); });",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "scripts/dev.sh",
+    "line": 151,
+    "category": "Internal/Localhost URL",
+    "severity": "INFO",
+    "snippet": "log \"  ${GREEN}API:${NC}        http://localhost:3000\"",
+    "recommendation": "Ensure internal URLs are not exposed in production configurations.",
+    "context": ""
+  },
+  {
+    "file": "scripts/dev.sh",
+    "line": 152,
+    "category": "Internal/Localhost URL",
+    "severity": "INFO",
+    "snippet": "log \"  ${GREEN}Dashboard:${NC}  http://localhost:5173\"",
+    "recommendation": "Ensure internal URLs are not exposed in production configurations.",
+    "context": ""
+  },
+  {
+    "file": "scripts/e2e-test.sh",
+    "line": 5,
+    "category": "Internal/Localhost URL",
+    "severity": "INFO",
+    "snippet": "API_BASE=\"${API_BASE:-http://localhost:3000}\"",
+    "recommendation": "Ensure internal URLs are not exposed in production configurations.",
+    "context": ""
+  },
+  {
+    "file": "scripts/e2e-test.sh",
+    "line": 156,
+    "category": "Raw SQL Query",
+    "severity": "INFO",
+    "snippet": "(cd \"${ROOT_DIR}/packages/api\" && node -e \"(async()=>{const pg=require('pg');const pool=new pg.Pool({connectionString:'$",
+    "recommendation": "Ensure all raw SQL uses parameterized queries.",
+    "context": ""
+  },
+  {
+    "file": "scripts/e2e-test.sh",
+    "line": 268,
+    "category": "Raw SQL Query",
+    "severity": "INFO",
+    "snippet": "pool.query('TRUNCATE TABLE api_keys, organizations CASCADE'),",
+    "recommendation": "Ensure all raw SQL uses parameterized queries.",
+    "context": ""
+  },
+  {
+    "file": "scripts/verify-release-metadata.sh",
+    "line": 12,
+    "category": "Environment Variable Access",
+    "severity": "INFO",
+    "snippet": "const rootDir = process.env.ROOT_DIR;",
+    "recommendation": "Ensure required env vars are validated at startup. Check for defaults that might be insecure.",
+    "context": ""
+  },
+  {
+    "file": "scripts/verify-release-metadata.sh",
+    "line": 36,
+    "category": "Console Statement",
+    "severity": "INFO",
+    "snippet": "console.log(message);",
+    "recommendation": "Remove or replace with proper logging framework before production.",
+    "context": ""
+  },
+  {
+    "file": "security_audit.py",
+    "line": 110,
+    "category": "TODO/FIXME Comment",
+    "severity": "INFO",
+    "snippet": "'todo_security': {",
+    "recommendation": "Review and address technical debt.",
+    "context": ""
+  },
+  {
+    "file": "security_audit.py",
+    "line": 111,
+    "category": "TODO/FIXME Comment",
+    "severity": "INFO",
+    "snippet": "'regex': re.compile(r'(?i)(TODO|FIXME|HACK|XXX)\\s*[:\\-]?\\s*(.*security|vuln|leak|password|secret|token|key|bypass|auth|c",
+    "recommendation": "Review and address technical debt.",
+    "context": ""
+  },
+  {
+    "file": "security_audit.py",
+    "line": 113,
+    "category": "TODO/FIXME Comment",
+    "severity": "INFO",
+    "snippet": "'category': 'Security-Related TODO/FIXME',",
+    "recommendation": "Review and address technical debt.",
+    "context": ""
+  },
+  {
+    "file": "security_audit.py",
+    "line": 114,
+    "category": "TODO/FIXME Comment",
+    "severity": "INFO",
+    "snippet": "'recommendation': 'Address security TODOs before release.'",
+    "recommendation": "Review and address technical debt.",
+    "context": ""
+  },
+  {
+    "file": "security_audit.py",
+    "line": 116,
+    "category": "TODO/FIXME Comment",
+    "severity": "INFO",
+    "snippet": "'todo_general': {",
+    "recommendation": "Review and address technical debt.",
+    "context": ""
+  },
+  {
+    "file": "security_audit.py",
+    "line": 117,
+    "category": "TODO/FIXME Comment",
+    "severity": "INFO",
+    "snippet": "'regex': re.compile(r'(?i)(TODO|FIXME|HACK|XXX)'),",
+    "recommendation": "Review and address technical debt.",
+    "context": ""
+  },
+  {
+    "file": "security_audit.py",
+    "line": 119,
+    "category": "TODO/FIXME Comment",
+    "severity": "INFO",
+    "snippet": "'category': 'TODO/FIXME Comment',",
+    "recommendation": "Review and address technical debt.",
+    "context": ""
+  },
+  {
+    "file": "security_audit.py",
+    "line": 241,
+    "category": "TODO/FIXME Comment",
+    "severity": "INFO",
+    "snippet": "if file_path.suffix == '.md' and pattern_name in ['console_log', 'todo_general', 'todo_security']:",
+    "recommendation": "Review and address technical debt.",
+    "context": ""
+  }
+]

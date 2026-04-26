@@ -2,7 +2,6 @@
 set -euo pipefail
 
 ROOT_DIR="$(git rev-parse --show-toplevel)"
-export DATABASE_URL="postgresql://apex:apex_dev@localhost:5433/apex_dev"
 
 BLUE='\033[1;34m'
 GREEN='\033[0;32m'
@@ -11,6 +10,12 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 log() { printf '%b\n' "$1"; }
+
+if [[ -z "${DATABASE_URL:-}" ]]; then
+  log "${RED}ERROR:${NC} DATABASE_URL environment variable is not set."
+  log "${YELLOW}Hint:${NC} Set DATABASE_URL or create a .env file and source it."
+  exit 1
+fi
 
 detect_direct_runtime() {
   if command -v podman >/dev/null 2>&1 && podman info >/dev/null 2>&1; then

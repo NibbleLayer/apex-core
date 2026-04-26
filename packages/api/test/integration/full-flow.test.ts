@@ -36,12 +36,14 @@ describe('Full Flow Integration', () => {
       const { apiKeys } = await import('@nibblelayer/apex-persistence/db');
       const rawKey = `apex_${crypto.randomBytes(32).toString('hex')}`;
       const keyHash = await hashApiKey(rawKey);
+      const keyPrefix = rawKey.slice(0, 8);
       const { createId } = await import('../../src/utils/id.js');
       const keyId = createId();
       await testDb.insert(apiKeys).values({
         id: keyId,
         organizationId: org.id,
         keyHash,
+        keyPrefix,
         label: 'Integration Test Key',
         createdAt: new Date(),
         revokedAt: null,
@@ -181,7 +183,7 @@ describe('Full Flow Integration', () => {
     expect(settlements.total).toBe(1);
     expect(settlements.settlements[0].amount).toBe('$0.01');
     expect(settlements.settlements[0].status).toBe('pending');
-    expect(settlements.settlements[0].settlement_reference).toBe('0xsettlement123');
+    expect(settlements.settlements[0].settlementReference).toBe('0xsettlement123');
 
     // 11. Verify webhook delivery was enqueued
     const deliveries = await testDb

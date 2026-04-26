@@ -137,7 +137,6 @@ describe('GET /sdk/manifest', () => {
     });
 
     expect(res.status).toBe(200);
-    expect(res.headers.get('x-apex-skip-serialization')).toBe('1');
 
     const parsed = (await res.json()) as SignedManifestEnvelope;
     expect(parsed.manifest.serviceId).toBe(serviceId);

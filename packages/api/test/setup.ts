@@ -3,7 +3,10 @@ import pg from 'pg';
 import * as schema from '@nibblelayer/apex-persistence/db';
 import { afterEach, afterAll } from 'vitest';
 
-const connectionString = process.env.DATABASE_URL || 'postgresql://apex:apex_dev@localhost:5433/apex_dev';
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  throw new Error('DATABASE_URL environment variable is required');
+}
 
 // Create a test pool with a single connection to avoid cross-connection visibility issues
 const testPool = new pg.Pool({ 

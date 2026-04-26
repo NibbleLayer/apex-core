@@ -17,15 +17,16 @@ services:
     container_name: apex-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: apex
-      POSTGRES_PASSWORD: apex_dev
-      POSTGRES_DB: apex_dev
+      POSTGRES_USER: ${POSTGRES_USER:-apex}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-apex_dev}
+      DATABASE_URL: ${DATABASE_URL}
     ports:
       - "5433:5432"
     volumes:
       - apex-pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U apex -d apex_dev"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-apex} -d $${POSTGRES_DB:-apex_dev}"]
       interval: 3s
       timeout: 3s
       retries: 10
@@ -41,7 +42,7 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://apex:apex_dev@postgres:5432/apex_dev
+      DATABASE_URL: ${DATABASE_URL}
     command: ["sh", "-c", "cd /app/packages/core && node node_modules/drizzle-kit/bin.cjs push --config drizzle.config.ts"]
 
   # ---- API ----
@@ -55,7 +56,7 @@ services:
       init-db:
         condition: service_completed_successfully
     environment:
-      DATABASE_URL: postgresql://apex:apex_dev@postgres:5432/apex_dev
+      DATABASE_URL: ${DATABASE_URL}
       PORT: "3000"
       NODE_ENV: production
       # Auto-seed settings (used on first boot only)
