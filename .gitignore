@@ -2,6 +2,15 @@
 **/.aiwf/
 .aiwf-governance/
 
+# AIWF internal tooling
+setup/
+governance/
+.opencode/
+.aiwf-linter/
+docs/IMPLEMENTATION_ROADMAP.md
+docs/PUBLICATION_READINESS.md
+docs/RELEASE_PROCESS.md
+
 # Project ignores
 node_modules/
 dist/
