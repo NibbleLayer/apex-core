@@ -8,6 +8,10 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 ROOT_DIR="$(git rev-parse --show-toplevel)"
+
+# Load .env if present
+source "${ROOT_DIR}/scripts/load-env.sh" 2>/dev/null || true
+
 API_BASE="http://localhost:3000"
 
 # Check if pnpm dev is running

@@ -3,6 +3,9 @@ set -euo pipefail
 
 ROOT_DIR="$(git rev-parse --show-toplevel)"
 
+# Load .env if present
+source "${ROOT_DIR}/scripts/load-env.sh" 2>/dev/null || true
+
 BLUE='\033[1;34m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -13,7 +16,9 @@ log() { printf '%b\n' "$1"; }
 
 if [[ -z "${DATABASE_URL:-}" ]]; then
   log "${RED}ERROR:${NC} DATABASE_URL environment variable is not set."
-  log "${YELLOW}Hint:${NC} Set DATABASE_URL or create a .env file and source it."
+  log "${YELLOW}Hint:${NC} Create a .env file in the repo root:${NC}"
+  log "  cp .env.example .env"
+  log "  # Edit .env with your PostgreSQL credentials"
   exit 1
 fi
 

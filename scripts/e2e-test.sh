@@ -2,6 +2,10 @@
 set -euo pipefail
 
 ROOT_DIR="$(git rev-parse --show-toplevel)"
+
+# Load .env if present
+source "${ROOT_DIR}/scripts/load-env.sh" 2>/dev/null || true
+
 API_BASE="${API_BASE:-http://localhost:3000}"
 API_KEY="${APEX_API_KEY:-}"
 
