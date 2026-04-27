@@ -72,35 +72,7 @@ wait_for_postgres_protocol() {
   check_postgres_protocol
 }
 
-ensure_postgres() {
-  local runtime compose
-  if runtime="$(detect_direct_runtime)"; then
-    if "$runtime" container inspect apex-postgres >/dev/null 2>&1; then
-      if "$runtime" ps --format '{{.Names}}' | grep -q '^apex-postgres$'; then
-        log "${GREEN}PostgreSQL container already running (${runtime}).${NC}"
-      else
-        log "${BLUE}Starting existing PostgreSQL container (${runtime})...${NC}"
-        "$runtime" start apex-postgres >/dev/null
-      fi
-    else
-      log "${BLUE}Creating PostgreSQL container (${runtime})...${NC}"
-      "$runtime" run -d \
-        --name apex-postgres \
-        -e POSTGRES_USER=apex \
-        -e POSTGRES_PASSWORD=apex_dev \
-        -e POSTGRES_DB=apex_dev \
-        -p 5433:5432 \
-        docker.io/library/postgres:16-alpine >/dev/null
-    fi
-  else
-    if ! compose="$(detect_compose)"; then
-      log "${RED}ERROR:${NC} podman, docker, or compose is required for PostgreSQL."
-      exit 1
-    fi
-    log "${BLUE}Starting PostgreSQL with compose fallback...${NC} (${compose})"
-    bash -lc "${compose} -f \"${ROOT_DIR}/compose.yaml\" up -d postgres"
-  fi
-
+await_postgres_ready() {
   log "Waiting for PostgreSQL TCP port on :5433..."
   if ! wait_for_port '127.0.0.1' '5433' '45'; then
     log "${RED}ERROR:${NC} PostgreSQL did not become reachable on :5433."
@@ -113,6 +85,54 @@ ensure_postgres() {
     exit 1
   fi
   log "${GREEN}PostgreSQL ready.${NC}"
+}
+
+ensure_postgres() {
+  local runtime compose
+  if runtime="$(detect_direct_runtime)"; then
+    if "$runtime" container inspect apex-postgres >/dev/null 2>&1; then
+      if "$runtime" ps --format '{{.Names}}' | grep -q '^apex-postgres$'; then
+        log "${GREEN}PostgreSQL container already running (${runtime}).${NC}"
+      else
+        log "${BLUE}Starting existing PostgreSQL container (${runtime})...${NC}"
+        "$runtime" start apex-postgres >/dev/null
+      fi
+
+      # Verify credentials match current DATABASE_URL
+      log "Verifying PostgreSQL credentials..."
+      if ! check_postgres_protocol >/dev/null 2>&1; then
+        log "${YELLOW}Password mismatch detected. Recreating container with new credentials...${NC}"
+        "$runtime" stop apex-postgres >/dev/null 2>&1 || true
+        "$runtime" rm -f apex-postgres >/dev/null 2>&1 || true
+        # Fall through to create below
+      else
+        log "${GREEN}Credentials verified.${NC}"
+        await_postgres_ready
+        return 0
+      fi
+    fi
+
+    # Create new container (either didn't exist or was recreated due to password mismatch)
+    log "${BLUE}Creating PostgreSQL container (${runtime})...${NC}"
+    local db_password
+    db_password="$(node -e "const u = new URL('${DATABASE_URL}'); console.log(u.password);")"
+    "$runtime" run -d \
+      --name apex-postgres \
+      -e POSTGRES_USER=apex \
+      -e POSTGRES_PASSWORD="${db_password}" \
+      -e POSTGRES_DB=apex_dev \
+      -p 5433:5432 \
+      docker.io/library/postgres:16-alpine >/dev/null
+  else
+    if ! compose="$(detect_compose)"; then
+      log "${RED}ERROR:${NC} podman, docker, or compose is required for PostgreSQL."
+      exit 1
+    fi
+    log "${BLUE}Starting PostgreSQL with compose fallback...${NC} (${compose})"
+    bash -lc "${compose} -f \"${ROOT_DIR}/compose.yaml\" up -d postgres"
+  fi
+
+  await_postgres_ready
 }
 
 ensure_schema() {
