@@ -24,3 +24,6 @@ coverage/
 .vitest/
 .DS_Store
 SECURITY_AUDIT_REPORT.md
+security_audit.py
+security_audit_executive.json
+security_audit_report.json
