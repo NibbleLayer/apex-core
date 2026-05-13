@@ -14,16 +14,11 @@ git clone https://github.com/NibbleLayer/apex-core.git
 cd apex-core
 pnpm install
 
-# 2. Set up environment
-cp .env.example .env
-# Edit .env with your PostgreSQL credentials
-
-# 3. Start the stack
-pnpm dev
-
-# 4. In another terminal, run the demo
+# 2. Start guided local onboarding
 pnpm quickstart
 ```
+
+`pnpm quickstart` is the primary onboarding entrypoint. It guides local setup, explains planned `.env` or reset changes before applying them, prebuilds required workspace artifacts, starts the local PostgreSQL-backed stack, and can optionally add demo sample data.
 
 On first run, an API key is written to `.apex-seed-key`. Use this key to authenticate with the dashboard.
 
@@ -67,19 +62,31 @@ The Dashboard is the operator UI. The API is the central Hono-based control plan
 
 ```bash
 pnpm install --frozen-lockfile
-pnpm dev
+pnpm quickstart
 ```
 
-This starts PostgreSQL, pushes the schema, seeds the initial organization, and launches both the API and Dashboard.
+This creates or updates a local onboarding `.env` when approved, starts containerized PostgreSQL on `localhost:5433`, pushes the schema, seeds the initial organization, prebuilds required internal workspace artifacts, and launches both the API and Dashboard.
 
 On first run, an API key is written to `.apex-seed-key`. Use this key to authenticate with the dashboard.
 
 - API: `http://localhost:3000`
 - Dashboard: `http://localhost:5173`
 
-### What's Included in the Demo
+Useful quickstart variants:
 
-Running `pnpm quickstart` creates a complete demo environment:
+```bash
+pnpm quickstart -- --minimal   # local stack only, no demo sample data
+pnpm quickstart -- --demo      # guided onboarding plus demo sample data
+pnpm quickstart -- --doctor    # prerequisite checks only
+pnpm quickstart -- --reset     # local-safe reset of Apex DB/container state
+pnpm quickstart -- --yes       # auto-confirm local-safe prompts
+```
+
+`pnpm dev`, `pnpm stop`, and `pnpm seed` remain available for advanced/manual workflows, but `pnpm quickstart` is the preferred public entrypoint.
+
+### What's Included in the Optional Demo
+
+If you approve the optional demo step, quickstart creates a complete sample environment:
 
 - An organization and API key
 - A sample service (e.g., Weather API) with routes and pricing rules
@@ -106,13 +113,19 @@ docker compose up --build
 Stop the stack with:
 
 ```bash
-./scripts/stop.sh
+pnpm stop
 ```
 
 Remove volumes as well with:
 
 ```bash
-./scripts/stop.sh --volumes
+pnpm stop -- --volumes
+```
+
+Need script help or flags? Use:
+
+```bash
+pnpm stop --help
 ```
 
 ## Verification
@@ -159,7 +172,7 @@ pnpm e2e
 
 ## Reproducibility notes
 
-- Root scripts resolve the workspace dynamically with `git rev-parse --show-toplevel`.
+- Root scripts resolve the workspace from their own script location and only fall back to `git` when needed.
 - Public package tarballs are verified to include only publish-safe artifacts.
 - Compose verification checks the committed `compose.yaml` without starting containers.
 - CI uses Node 22 and the same release-verification primitives exposed locally.

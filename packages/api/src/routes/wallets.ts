@@ -5,6 +5,7 @@ import { createWalletSchema } from '@nibblelayer/apex-contracts/schemas';
 import { authMiddleware } from '../middleware/auth.js';
 import { getDb } from '../db/resolver.js';
 import { createId } from '../utils/id.js';
+import { validateAddressForNetwork } from '../network/registry.js';
 
 const wallet = new Hono();
 
@@ -51,6 +52,13 @@ wallet.post('/services/:serviceId/wallets', async (c) => {
   // Verify network matches
   if (env.network !== parsed.data.network) {
     return c.json({ error: 'Wallet network must match environment network' }, 400);
+  }
+
+  // Validate wallet address using the network adapter
+  if (!validateAddressForNetwork(parsed.data.address, parsed.data.network)) {
+    return c.json({
+      error: `Invalid address '${parsed.data.address}' for network '${parsed.data.network}'`,
+    }, 400);
   }
 
   const id = createId();
