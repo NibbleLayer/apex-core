@@ -37,32 +37,32 @@ EXECUTIVE SUMMARY
 
   File:     compose.yaml:44
   Category: Database Connection String
-  Snippet:  DATABASE_URL: postgresql://apex:REDACTED@postgres:5432/apex_dev
+  Snippet:  DATABASE_URL: postgresql://apex:REDACTED@postgres:5432/REDACTED
   Action:   Move connection strings to environment variables. Never commit credentials in URLs.
 
   File:     compose.yaml:44
   Category: Hardcoded Connection String
-  Snippet:  DATABASE_URL: postgresql://apex:REDACTED@postgres:5432/apex_dev
+  Snippet:  DATABASE_URL: postgresql://apex:REDACTED@postgres:5432/REDACTED
   Action:   Use environment variable substitution for DATABASE_URL.
 
   File:     compose.yaml:58
   Category: Database Connection String
-  Snippet:  DATABASE_URL: postgresql://apex:REDACTED@postgres:5432/apex_dev
+  Snippet:  DATABASE_URL: postgresql://apex:REDACTED@postgres:5432/REDACTED
   Action:   Move connection strings to environment variables. Never commit credentials in URLs.
 
   File:     compose.yaml:58
   Category: Hardcoded Connection String
-  Snippet:  DATABASE_URL: postgresql://apex:REDACTED@postgres:5432/apex_dev
+  Snippet:  DATABASE_URL: postgresql://apex:REDACTED@postgres:5432/REDACTED
   Action:   Use environment variable substitution for DATABASE_URL.
 
   File:     packages/api/src/db/index.ts:6
   Category: Database Connection String
-  Snippet:  connectionString: process.env.DATABASE_URL || 'postgresql://apex:REDACTED@localhost:5433/apex_dev',
+  Snippet:  connectionString: process.env.DATABASE_URL || 'postgresql://apex:REDACTED@localhost:5433/REDACTED',
   Action:   Move connection strings to environment variables. Never commit credentials in URLs.
 
   File:     packages/api/src/db/index.ts:6
   Category: Hardcoded Database Credentials
-  Snippet:  connectionString: process.env.DATABASE_URL || 'postgresql://apex:REDACTED@localhost:5433/apex_dev',
+  Snippet:  connectionString: process.env.DATABASE_URL || 'postgresql://apex:REDACTED@localhost:5433/REDACTED',
   Action:   Remove hardcoded fallback database credentials. Force env var usage only.
 
   File:     packages/api/src/seed.ts:121
@@ -87,12 +87,12 @@ EXECUTIVE SUMMARY
 
   File:     packages/core/drizzle.config.ts:8
   Category: Database Connection String
-  Snippet:  url: process.env.DATABASE_URL || 'postgresql://apex:REDACTED@localhost:5433/apex_dev',
+  Snippet:  url: process.env.DATABASE_URL || 'postgresql://apex:REDACTED@localhost:5433/REDACTED',
   Action:   Move connection strings to environment variables. Never commit credentials in URLs.
 
   File:     packages/core/drizzle.config.ts:8
   Category: Hardcoded Database Credentials
-  Snippet:  url: process.env.DATABASE_URL || 'postgresql://apex:REDACTED@localhost:5433/apex_dev',
+  Snippet:  url: process.env.DATABASE_URL || 'postgresql://apex:REDACTED@localhost:5433/REDACTED',
   Action:   Remove hardcoded fallback database credentials. Force env var usage only.
 
   File:     packages/core/test/db-schema.test.ts:491
@@ -102,7 +102,7 @@ EXECUTIVE SUMMARY
 
   File:     packages/core/test/setup-db.ts:6
   Category: Database Connection String
-  Snippet:  process.env.DATABASE_URL || 'postgresql://apex:REDACTED@localhost:5433/apex_dev';
+  Snippet:  process.env.DATABASE_URL || 'postgresql://apex:REDACTED@localhost:5433/REDACTED';
   Action:   Move connection strings to environment variables. Never commit credentials in URLs.
 
   File:     packages/dashboard/src/components/OnboardingWizard.tsx:64
@@ -132,7 +132,7 @@ EXECUTIVE SUMMARY
 
   File:     scripts/dev.sh:5
   Category: Database Connection String
-  Snippet:  export DATABASE_URL="postgresql://apex:REDACTED@localhost:5433/apex_dev"
+  Snippet:  export DATABASE_URL="postgresql://apex:REDACTED@localhost:5433/REDACTED"
   Action:   Move connection strings to environment variables. Never commit credentials in URLs.
 
   File:     scripts/e2e-test.sh:6
@@ -142,7 +142,7 @@ EXECUTIVE SUMMARY
 
   File:     scripts/e2e-test.sh:7
   Category: Database Connection String
-  Snippet:  DATABASE_URL="postgresql://apex:REDACTED@localhost:5433/apex_dev"
+  Snippet:  DATABASE_URL="postgresql://apex:REDACTED@localhost:5433/REDACTED"
   Action:   Move connection strings to environment variables. Never commit credentials in URLs.
 
 ================================================================================
@@ -338,7 +338,7 @@ EXECUTIVE SUMMARY
     -----------------------------------------------------------------------
     File: compose.yaml (lines 21, 44, 58)
     Finding: POSTGRES_PASSWORD: REDACTED
-             DATABASE_URL: postgresql://apex:REDACTED@postgres:5432/apex_dev
+             DATABASE_URL: postgresql://apex:REDACTED@postgres:5432/REDACTED
     Impact: Default DB password is public knowledge. Any deployment using
             compose.yaml with default values is immediately compromised.
     Fix:   1. Use env var substitution:
@@ -453,7 +453,7 @@ SHORT-TERM (next sprint):
 
 After fixes, verify with:
   git log --all --full-history -- .apex-seed-key    # Should be empty
-  grep -r "apex_dev" --include="*.ts" --include="*.js" --include="*.sh" --include="*.yaml"
+  grep -r "REDACTED" --include="*.ts" --include="*.js" --include="*.sh" --include="*.yaml"
   grep -r "c.set('apiKeyRaw'" packages/api/src/
   grep -r "process.env.DATABASE_URL ||" packages/ scripts/
 
