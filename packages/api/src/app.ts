@@ -16,6 +16,7 @@ import { settlementRoutes } from './routes/settlements.js';
 import { discoveryRoutes } from './routes/discovery.js';
 import { webhookRoutes } from './routes/webhooks.js';
 import { domainRoutes } from './routes/domains.js';
+import { networkProfileRoutes } from './routes/network-profiles.js';
 
 export const app = new Hono();
 
@@ -26,6 +27,7 @@ app.use('*', cors());
 app.get('/health', (c) => c.json({ status: 'ok' }));
 
 // Routes
+app.route('/', networkProfileRoutes);
 app.route('/auth', authRoutes);
 app.route('/organizations', organizationRoutes);
 app.route('/services', serviceRoutes);
