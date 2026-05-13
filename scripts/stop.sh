@@ -1,37 +1,53 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(git rev-parse --show-toplevel)"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=./lib.sh
+source "${SCRIPT_DIR}/lib.sh"
+ROOT_DIR="$APEX_ROOT_DIR"
 COMPOSE_FILE="${ROOT_DIR}/compose.yaml"
+RUNTIME_DIR="$APEX_RUNTIME_DIR"
 REMOVE_VOLUMES=0
 
-BLUE='\033[1;34m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-NC='\033[0m'
+usage() {
+  cat <<'EOF'
+Usage: pnpm stop [-- --volumes] [-- --help]
 
-log() { printf '%b\n' "$1"; }
+Stops Apex-owned local dev processes recorded by scripts/dev.sh and removes the local apex-postgres container.
 
-detect_compose() {
-  if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
-    printf '%s' 'docker compose'
-    return 0
-  fi
-  if command -v podman >/dev/null 2>&1 && podman compose version >/dev/null 2>&1; then
-    printf '%s' 'podman compose'
-    return 0
-  fi
-  return 1
+Options:
+  --volumes   Remove attached anonymous Postgres volumes too.
+  --help, -h  Show this help text (`pnpm stop --help` works too).
+EOF
 }
 
-kill_port() {
-  local port="$1"
-  if command -v lsof >/dev/null 2>&1; then
-    lsof -ti:"$port" 2>/dev/null | xargs --no-run-if-empty kill 2>/dev/null || true
-  elif command -v fuser >/dev/null 2>&1; then
-    fuser -k "$port"/tcp 2>/dev/null || true
+process_matches_repo() {
+  local pgid="$1" args
+  args="$(ps -o args= -p "$pgid" 2>/dev/null || true)"
+  [[ -n "$args" && "$args" == *"$ROOT_DIR"* ]]
+}
+
+stop_recorded_process() {
+  local name="$1" state_file pgid
+  state_file="${RUNTIME_DIR}/${name}.pgid"
+
+  [[ -f "$state_file" ]] || return 0
+
+  pgid="$(<"$state_file")"
+  if [[ -z "$pgid" ]] || ! kill -0 "$pgid" 2>/dev/null; then
+    rm -f "$state_file"
+    return 0
   fi
+
+  if ! process_matches_repo "$pgid"; then
+    warn "Skipping stale ${name} process group ${pgid} because it no longer looks Apex-owned."
+    rm -f "$state_file"
+    return 0
+  fi
+
+  log "Stopping Apex ${name} process group (${pgid})..."
+  kill -- "-${pgid}" 2>/dev/null || true
+  rm -f "$state_file"
 }
 
 remove_direct_container() {
@@ -53,16 +69,24 @@ remove_direct_container() {
 
 for arg in "$@"; do
   case "$arg" in
+    --) ;;
     --volumes) REMOVE_VOLUMES=1 ;;
+    --help|-h|help)
+      usage
+      exit 0
+      ;;
     *)
       log "${RED}ERROR:${NC} unknown argument '$arg'."
-      log "Usage: $0 [--volumes]"
+      usage
       exit 1
       ;;
   esac
 done
 
 log "${BLUE}=== Apex shutdown ===${NC}"
+
+stop_recorded_process api
+stop_recorded_process dashboard
 
 # Direct containers are primary. Try both because users may switch runtimes.
 remove_direct_container podman
@@ -79,10 +103,8 @@ if [[ -f "$COMPOSE_FILE" ]]; then
   fi
 fi
 
-kill_port 3000
-kill_port 5173
-
 if [[ "$REMOVE_VOLUMES" -eq 1 ]]; then
   log "${YELLOW}Database container and attached anonymous volumes were removed where discoverable.${NC}"
 fi
+rmdir "$RUNTIME_DIR" >/dev/null 2>&1 || true
 log "${GREEN}Stopped.${NC}"
