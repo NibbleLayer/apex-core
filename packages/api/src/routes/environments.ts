@@ -5,6 +5,7 @@ import { createEnvironmentSchema } from '@nibblelayer/apex-contracts/schemas';
 import { authMiddleware } from '../middleware/auth.js';
 import { getDb } from '../db/resolver.js';
 import { createId } from '../utils/id.js';
+import { resolveNetwork } from '../network/registry.js';
 
 const env = new Hono();
 
@@ -34,12 +35,20 @@ env.post('/services/:serviceId/environments', async (c) => {
     return c.json({ error: parsed.error.issues.map((i) => i.message).join(', ') }, 400);
   }
 
-  // Set default facilitator URL based on mode
-  const facilitatorUrl = parsed.data.facilitatorUrl ?? (
-    parsed.data.mode === 'test'
-      ? 'https://x402.org/facilitator'
-      : 'https://api.cdp.coinbase.com/platform/v2/x402'
-  );
+  // Resolve network: from profile ID or raw CAIP-2
+  let network: string;
+  let facilitatorUrl: string;
+  try {
+    const resolved = resolveNetwork({
+      network: parsed.data.network,
+      networkProfileId: parsed.data.networkProfileId,
+      mode: parsed.data.mode,
+    });
+    network = resolved.network;
+    facilitatorUrl = parsed.data.facilitatorUrl ?? resolved.facilitatorUrl;
+  } catch (err: any) {
+    return c.json({ error: err.message }, 400);
+  }
 
   const id = createId();
   const now = new Date();
@@ -51,7 +60,7 @@ env.post('/services/:serviceId/environments', async (c) => {
         id,
         serviceId,
         mode: parsed.data.mode,
-        network: parsed.data.network,
+        network,
         facilitatorUrl,
         createdAt: now,
         updatedAt: now,
