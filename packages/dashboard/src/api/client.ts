@@ -10,6 +10,7 @@ import type {
   DiscoveryMetadata,
   DiscoveryPreviewResponse,
   Environment,
+  NetworkProfileSummary,
   PriceRule,
   Route,
   SdkTokenCreateResponse,
@@ -84,6 +85,9 @@ export const api = {
     }).then(r => { if (!r.ok) throw new Error('Invalid API key'); return r.json(); }),
 
   me: () => apiFetch<{ organizationId: string; name: string; slug: string }>('/auth/me'),
+
+  // Network Profiles
+  listNetworkProfiles: () => apiFetch<NetworkProfileSummary[]>('/network-profiles'),
 
   // Services
   listServices: () => apiFetch<Service[]>('/services'),
