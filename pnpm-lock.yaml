@@ -26,6 +26,12 @@ importers:
       '@nibblelayer/apex-control-plane-core':
         specifier: workspace:*
         version: link:../control-plane-core
+      '@nibblelayer/apex-network':
+        specifier: workspace:*
+        version: link:../network
+      '@nibblelayer/apex-network-evm':
+        specifier: workspace:*
+        version: link:../network-evm
       '@nibblelayer/apex-persistence':
         specifier: workspace:*
         version: link:../core
@@ -153,6 +159,28 @@ importers:
         version: 2.11.12(solid-js@1.9.12)(vite@6.4.2(@types/node@22.19.17)(tsx@4.21.0))
       vitest:
         specifier: ^3.2.0
+        version: 3.2.4(@types/debug@4.1.13)(@types/node@22.19.17)(jsdom@26.1.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))(msw@2.13.0(@types/node@22.19.17)(typescript@5.9.3))(tsx@4.21.0)
+
+  packages/network:
+    devDependencies:
+      typescript:
+        specifier: ^5.8.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.1.0
+        version: 3.2.4(@types/debug@4.1.13)(@types/node@22.19.17)(jsdom@26.1.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))(msw@2.13.0(@types/node@22.19.17)(typescript@5.9.3))(tsx@4.21.0)
+
+  packages/network-evm:
+    dependencies:
+      '@nibblelayer/apex-network':
+        specifier: workspace:*
+        version: link:../network
+    devDependencies:
+      typescript:
+        specifier: ^5.8.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.1.0
         version: 3.2.4(@types/debug@4.1.13)(@types/node@22.19.17)(jsdom@26.1.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))(msw@2.13.0(@types/node@22.19.17)(typescript@5.9.3))(tsx@4.21.0)
 
   packages/sdk-hono:
