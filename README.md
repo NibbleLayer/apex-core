@@ -33,10 +33,14 @@ Apex is an x402 control plane: one-line SDK integration in seller APIs, with rou
 
 ```
 Dashboard (SolidJS) ←→ API (Hono) ←→ PostgreSQL
-                            ↓
-                      SDK (@nibblelayer/apex-hono)
-                            ↓
-                      Seller's Hono API (x402 payments)
+        ↑                    ↑
+        │                    ├── Network Registry
+        │                    │   (apex-network + EVM adapter)
+        │                    │
+        │                    ↓
+        │              SDK (@nibblelayer/apex-hono)
+        │                    ↓
+        └────────── Seller's Hono API (x402 payments)
 ```
 
 The Dashboard is the operator UI. The API is the central Hono-based control plane. The SDK wraps a seller's existing Hono API with x402 payment verification, reading route pricing and manifests from the control plane. PostgreSQL persists all service configuration, events, and settlements.
@@ -49,6 +53,8 @@ The Dashboard is the operator UI. The API is the central Hono-based control plan
 - [Business Repository Boundary](./docs/BUSINESS_REPO_BOUNDARY.md)
 - [Implementation Roadmap](./docs/IMPLEMENTATION_ROADMAP.md)
 - [Publication Readiness](./docs/PUBLICATION_READINESS.md)
+- [Network Adapter Architecture](./docs/architecture/NETWORK_ADAPTER_SPEC.md)
+- [CLI & Auth Architecture](./docs/architecture/CLI_AUTH_SPEC.md)
 
 ## Requirements
 
@@ -161,6 +167,8 @@ pnpm e2e
 | `@nibblelayer/apex-contracts` | Public schemas and transport-facing types shared across Apex integrations. |
 | `@nibblelayer/apex-control-plane-core` | Public manifest construction helpers for control-plane consumers. |
 | `@nibblelayer/apex-hono` | Public Hono SDK for seller runtime integration. |
+| `@nibblelayer/apex-network` | Chain adapter interfaces and network profile registry. |
+| `@nibblelayer/apex-network-evm` | EVM adapter with built-in profiles for Base and Ethereum. |
 
 ### Internal packages and apps
 
@@ -182,6 +190,8 @@ pnpm e2e
 - [`packages/contracts/README.md`](./packages/contracts/README.md)
 - [`packages/control-plane-core/README.md`](./packages/control-plane-core/README.md)
 - [`packages/sdk-hono/README.md`](./packages/sdk-hono/README.md)
+- [`packages/network/README.md`](./packages/network/README.md)
+- [`packages/network-evm/README.md`](./packages/network-evm/README.md)
 
 ## License
 
