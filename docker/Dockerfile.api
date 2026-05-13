@@ -19,6 +19,14 @@ COPY packages/control-plane-core/package.json packages/control-plane-core/
 COPY packages/control-plane-core/dist/ packages/control-plane-core/dist/
 COPY packages/control-plane-core/node_modules/ packages/control-plane-core/node_modules/
 
+COPY packages/network/package.json packages/network/
+COPY packages/network/dist/ packages/network/dist/
+COPY packages/network/node_modules/ packages/network/node_modules/
+
+COPY packages/network-evm/package.json packages/network-evm/
+COPY packages/network-evm/dist/ packages/network-evm/dist/
+COPY packages/network-evm/node_modules/ packages/network-evm/node_modules/
+
 COPY packages/core/package.json packages/core/
 COPY packages/core/dist/ packages/core/dist/
 COPY packages/core/src/db/ packages/core/src/db/
