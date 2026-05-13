@@ -1,3 +1,23 @@
+export interface NetworkAssetSummary {
+  symbol: string;
+  name: string;
+  address: string;
+  decimals: number;
+  isNative: boolean;
+}
+
+export interface NetworkProfileSummary {
+  id: string;
+  chainFamily: string;
+  displayName: string;
+  description?: string;
+  caip2: string;
+  mode: 'test' | 'production';
+  defaultFacilitatorUrl: string;
+  defaultAssets: NetworkAssetSummary[];
+  explorerBaseUrl: string;
+}
+
 export interface Organization {
   id: string;
   name: string;
@@ -72,7 +92,8 @@ export interface CreateServiceRequest {
 
 export interface CreateEnvironmentRequest {
   mode: 'test' | 'prod';
-  network: string;
+  network?: string;
+  networkProfileId?: string;
   facilitatorUrl?: string;
 }
 
