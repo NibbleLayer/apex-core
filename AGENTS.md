@@ -117,3 +117,32 @@ Delegate tasks to these agents when the request matches their specific domain:
 - Generated at: `2026-04-24T02:07:30.520083+00:00`.
 - Primary objective: Deliver reliable software with explicit operational governance.
 - Initial risk tier: `T1-medium`
+
+## Publication Governance
+
+### Published Packages
+
+These packages are published to npm under the `@nibblelayer` org:
+
+| Package | Directory | npm Name |
+|---------|-----------|----------|
+| Contracts | `packages/contracts` | `@nibblelayer/apex-contracts` |
+| Control Plane Core | `packages/control-plane-core` | `@nibblelayer/apex-control-plane-core` |
+| Hono SDK | `packages/sdk-hono` | `@nibblelayer/apex-hono` |
+| Network (types) | `packages/network` | `@nibblelayer/apex-network` |
+| Network EVM | `packages/network-evm` | `@nibblelayer/apex-network-evm` |
+
+### Publication Rule (Mandatory)
+
+> **When you modify ANY source file in a published package, you MUST bump its version in `package.json`.**
+
+This is NOT optional. The verification script will fail CI if this rule is violated.
+
+**Workflow:**
+1. Modify package source code
+2. Run `npm version patch` (or `minor`/`major`) inside the package directory
+3. Commit the version bump alongside the changes
+4. After merge to `main`, publish: `cd packages/<pkg> && npm publish --access public`
+
+**Verification:** Run `bash scripts/verify-publish-state.sh` before pushing.
+CI runs this script automatically on PRs targeting `main`.
