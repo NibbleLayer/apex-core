@@ -1,0 +1,26 @@
+name: Publish State Check
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'packages/contracts/**'
+      - 'packages/control-plane-core/**'
+      - 'packages/sdk-hono/**'
+      - 'packages/network/**'
+      - 'packages/network-evm/**'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Needed for git diff against base
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify publish state
+        run: bash scripts/verify-publish-state.sh --strict --changed-only
