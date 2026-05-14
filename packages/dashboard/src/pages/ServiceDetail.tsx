@@ -1,7 +1,7 @@
 import { createSignal, onMount, Show, For } from 'solid-js';
 import { useParams } from '@solidjs/router';
 import { api } from '../api/client';
-import type { Service, Environment, Route } from '../api/types';
+import type { Service, Environment, Route, NetworkProfileSummary } from '../api/types';
 import { buildCreateEnvironmentPayload } from '../api/payloads';
 import { RouteTable } from '../components/RouteTable';
 import { WalletManager } from '../components/WalletManager';
@@ -15,12 +15,19 @@ import { formatDate } from '../utils/format';
 
 type Tab = 'setup' | 'routes' | 'environments' | 'wallets' | 'domains' | 'events' | 'settlements' | 'discovery' | 'webhooks' | 'manifest';
 
-function CreateEnvironmentForm(props: { serviceId: string; onCreated: () => Promise<void> | void }) {
+function CreateEnvironmentForm(props: {
+  serviceId: string;
+  profiles: NetworkProfileSummary[];
+  onCreated: () => Promise<void> | void;
+}) {
   const [mode, setMode] = createSignal<'test' | 'prod'>('test');
   const [network, setNetwork] = createSignal('eip155:84532');
   const [facilitatorUrl, setFacilitatorUrl] = createSignal('');
   const [saving, setSaving] = createSignal(false);
   const [error, setError] = createSignal('');
+
+  const profilesByMode = () =>
+    props.profiles.filter((p) => p.mode === mode());
 
   async function handleSubmit(e: Event) {
     e.preventDefault();
@@ -40,23 +47,31 @@ function CreateEnvironmentForm(props: { serviceId: string; onCreated: () => Prom
       setFacilitatorUrl('');
       await props.onCreated();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create environment');
+      setError(
+        err instanceof Error ? err.message : 'Failed to create environment',
+      );
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} class="bg-white p-4 rounded-lg shadow mb-4 space-y-3">
+    <form
+      onSubmit={handleSubmit}
+      class="bg-white p-4 rounded-lg shadow mb-4 space-y-3"
+    >
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div>
-          <label class="block text-xs font-medium text-gray-600 mb-1">Mode</label>
+          <label class="block text-xs font-medium text-gray-600 mb-1">
+            Mode
+          </label>
           <select
             value={mode()}
             onChange={(e) => {
               const nextMode = e.currentTarget.value as 'test' | 'prod';
               setMode(nextMode);
-              setNetwork(nextMode === 'prod' ? 'eip155:8453' : 'eip155:84532');
+              const firstForMode = profilesByMode()[0];
+              setNetwork(firstForMode?.caip2 ?? network());
             }}
             class="w-full px-3 py-2 border rounded-lg text-sm"
           >
@@ -65,20 +80,27 @@ function CreateEnvironmentForm(props: { serviceId: string; onCreated: () => Prom
           </select>
         </div>
         <div>
-          <label class="block text-xs font-medium text-gray-600 mb-1">Network</label>
+          <label class="block text-xs font-medium text-gray-600 mb-1">
+            Network
+          </label>
           <select
             value={network()}
             onChange={(e) => setNetwork(e.currentTarget.value)}
             class="w-full px-3 py-2 border rounded-lg text-sm"
           >
-            <option value="eip155:84532">Base Sepolia</option>
-            <option value="eip155:8453">Base</option>
-            <option value="eip155:11155111">Sepolia</option>
-            <option value="eip155:1">Ethereum</option>
+            <For each={profilesByMode()}>
+              {(profile) => (
+                <option value={profile.caip2}>
+                  {profile.displayName}
+                </option>
+              )}
+            </For>
           </select>
         </div>
         <div>
-          <label class="block text-xs font-medium text-gray-600 mb-1">Facilitator URL</label>
+          <label class="block text-xs font-medium text-gray-600 mb-1">
+            Facilitator URL
+          </label>
           <input
             type="url"
             value={facilitatorUrl()}
@@ -106,8 +128,9 @@ export default function ServiceDetail() {
   const params = useParams();
   const [service, setService] = createSignal<Service | null>(null);
   const [environments, setEnvironments] = createSignal<Environment[]>([]);
-  const [routes, setRoutes] = createSignal<Route[]>([]);
-  const [events, setEvents] = createSignal<any>(null);
+const [routes, setRoutes] = createSignal<Route[]>([]);
+const [profiles, setProfiles] = createSignal<NetworkProfileSummary[]>([]);
+const [events, setEvents] = createSignal<any>(null);
   const [settlements, setSettlements] = createSignal<any>(null);
   const [manifest, setManifest] = createSignal<any>(null);
   const [activeTab, setActiveTab] = createSignal<Tab>('setup');
@@ -130,14 +153,16 @@ export default function ServiceDetail() {
   async function loadAll() {
     try {
       setLoading(true);
-      const [svc, envs, rts] = await Promise.all([
+      const [svc, envs, rts, profs] = await Promise.all([
         api.getService(params.id),
         api.listEnvironments(params.id),
         api.listRoutes(params.id),
+        api.listNetworkProfiles().catch(() => [] as NetworkProfileSummary[]),
       ]);
       setService(svc);
       setEnvironments(envs);
       setRoutes(rts);
+      setProfiles(profs);
       setError('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load service');
@@ -242,7 +267,7 @@ export default function ServiceDetail() {
         </Show>
 
         <Show when={activeTab() === 'environments'}>
-          <CreateEnvironmentForm serviceId={params.id} onCreated={loadAll} />
+          <CreateEnvironmentForm serviceId={params.id} profiles={profiles()} onCreated={loadAll} />
           <div class="bg-white rounded-lg shadow overflow-hidden">
             <table class="w-full">
               <thead class="bg-gray-50">

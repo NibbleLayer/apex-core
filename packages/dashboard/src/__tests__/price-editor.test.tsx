@@ -8,9 +8,13 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+const mockListNetworkProfiles = () =>
+  vi.spyOn(api, 'listNetworkProfiles').mockResolvedValue([]);
+
 describe('PriceEditor', () => {
   it('hides advanced raw fields by default and reveals them on request', async () => {
     vi.spyOn(api, 'listPricing').mockResolvedValue([]);
+    mockListNetworkProfiles();
 
     render(() => <PriceEditor routeId="route_123" onRefresh={vi.fn()} />);
     fireEvent.click(screen.getByText('+ Add Price Rule'));
@@ -26,6 +30,7 @@ describe('PriceEditor', () => {
 
   it('shows an actionable validation error when amount is missing', () => {
     vi.spyOn(api, 'listPricing').mockResolvedValue([]);
+    mockListNetworkProfiles();
 
     render(() => <PriceEditor routeId="route_123" onRefresh={vi.fn()} />);
     fireEvent.click(screen.getByText('+ Add Price Rule'));
@@ -36,6 +41,7 @@ describe('PriceEditor', () => {
 
   it.each(['abc', '0', '-1'])('shows an actionable validation error for invalid amount %s', (input) => {
     vi.spyOn(api, 'listPricing').mockResolvedValue([]);
+    mockListNetworkProfiles();
     const createPrice = vi.spyOn(api, 'createPrice');
 
     render(() => <PriceEditor routeId="route_123" onRefresh={vi.fn()} />);
@@ -49,6 +55,7 @@ describe('PriceEditor', () => {
 
   it('creates a price with normalized USD amount and the selected preset', async () => {
     vi.spyOn(api, 'listPricing').mockResolvedValue([]);
+    mockListNetworkProfiles();
     const createPrice = vi.spyOn(api, 'createPrice').mockResolvedValue({
       id: 'price_123',
       routeId: 'route_123',

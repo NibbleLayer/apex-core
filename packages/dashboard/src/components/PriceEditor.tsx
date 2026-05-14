@@ -1,11 +1,11 @@
 import { createSignal, For, Show, onMount } from 'solid-js';
 import { api } from '../api/client';
 import { buildCreatePricePayload } from '../api/payloads';
-import type { PriceRule } from '../api/types';
+import type { PriceRule, NetworkProfileSummary } from '../api/types';
 import {
   formatPricingTokenLabel,
   normalizeUsdAmountInput,
-  PRICING_TOKEN_PRESETS,
+  getTokenPresets,
   type PricingTokenPresetId,
 } from '../utils/pricing';
 
@@ -16,6 +16,7 @@ interface PriceEditorProps {
 
 export function PriceEditor(props: PriceEditorProps) {
   const [pricing, setPricing] = createSignal<PriceRule[]>([]);
+  const [profiles, setProfiles] = createSignal<NetworkProfileSummary[]>([]);
   const [showForm, setShowForm] = createSignal(false);
   const [showAdvancedFields, setShowAdvancedFields] = createSignal(false);
   const [amount, setAmount] = createSignal('');
@@ -24,7 +25,8 @@ export function PriceEditor(props: PriceEditorProps) {
   const [rawNetwork, setRawNetwork] = createSignal('');
   const [error, setError] = createSignal('');
 
-  const selectedPreset = () => PRICING_TOKEN_PRESETS.find((preset) => preset.id === selectedPresetId()) ?? PRICING_TOKEN_PRESETS[0];
+  const presets = () => getTokenPresets(profiles());
+  const selectedPreset = () => presets().find((preset) => preset.id === selectedPresetId()) ?? presets()[0];
   const resolvedToken = () => rawToken().trim() || selectedPreset().token;
   const resolvedNetwork = () => rawNetwork().trim() || selectedPreset().network;
 
@@ -37,7 +39,12 @@ export function PriceEditor(props: PriceEditorProps) {
     }
   }
 
-  onMount(loadPricing);
+  onMount(() => {
+    loadPricing();
+    api.listNetworkProfiles()
+      .then(setProfiles)
+      .catch(() => {});
+  });
 
   async function createPrice(e: Event) {
     e.preventDefault();
@@ -136,7 +143,7 @@ export function PriceEditor(props: PriceEditorProps) {
                 onChange={(e) => setSelectedPresetId(e.currentTarget.value as PricingTokenPresetId)}
                 class="w-full px-3 py-1.5 border rounded text-sm"
               >
-                <For each={PRICING_TOKEN_PRESETS}>
+                <For each={presets()}>
                   {(preset) => <option value={preset.id}>{preset.label}</option>}
                 </For>
               </select>

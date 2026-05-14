@@ -4,7 +4,7 @@ import {
   buildPresetPricePayload,
   formatPricingTokenLabel,
   normalizeUsdAmountInput,
-  PRICING_TOKEN_PRESETS,
+  getTokenPresets,
 } from '../utils/pricing';
 
 describe('pricing helpers', () => {
@@ -30,7 +30,8 @@ describe('pricing helpers', () => {
   });
 
   it('formats known token and network pairs with friendly labels', () => {
-    expect(formatPricingTokenLabel(PRICING_TOKEN_PRESETS[1].token, PRICING_TOKEN_PRESETS[1].network)).toBe('USDC on Base');
+    const fallbackPresets = getTokenPresets();
+    expect(formatPricingTokenLabel(fallbackPresets[1].token, fallbackPresets[1].network)).toBe('USDC on Base');
   });
 
   it('falls back to abbreviated token and network labels for unknown pairs', () => {
